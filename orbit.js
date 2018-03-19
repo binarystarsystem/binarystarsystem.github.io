@@ -30,20 +30,14 @@ var Es = [];
 var ts = [];
 var dists = [];
 var norma = 200;
-var img;
 var test;
-
-function preload() {
-    img = loadImage("obs.png");
-}
 
 
 function setup() {
     // create the app
     var canvas=createCanvas(800, 800);
     canvas.parent("canvas-container");
-    background(20);
-    console.log(img);
+    background(51);
     textSize(14);
     
     // parameter controls
@@ -64,14 +58,14 @@ function setup() {
     star2 = new Star(m1, norma, e, PI)
 
 
-
 }
 
 function draw() {
     // clear the frame
-    background(20);
+    background(51);
+    star1.run();
+    star2.run();
 
-    image(img, width/2-60, height-20-108, 120, 108);
     // check if the speed of the simulation has changed
 //    if (speedSlider.value()/1000 != dt) {
 //    
@@ -138,3 +132,4 @@ function create_binary(m1, m2) {
     star2 = new Star(m2,sep2, e, PI)
 
 }
+
