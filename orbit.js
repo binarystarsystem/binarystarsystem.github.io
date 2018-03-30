@@ -1,123 +1,122 @@
-//  Binary Star Simulator
-//  Written by Michael Topping
-//  Last updated - Feb. 19, 2017
-//  Created for use with UCLA Astro 3: Lab 5
-//  Observatory image: clipartpanda.com
-
-
-// global variables
 var star1;
 var star2;
-
-var m1Slider;
-var m2Slider;
-var speedSlider;
-var eSlider;
-var iSlider;
-var m1 = 10;
-var m2 = 10;
+var m1 = 25;
+var m2 = 25;
 var e = 0.5;
-var i = 90;
-var v1;
-var v2;
-var dt = 10;
-var fStrength = 10;
-var isep = 200;
-var t = 0;
-var dt = 0.01;
-var nsteps = 200;
-var Es = [];
-var ts = [];
-var dists = [];
+var i = 0;
 var norma = 200;
-var test;
 
+var t = 0;
+var dt = 10;
 
 function setup() {
-    // create the app
-    var canvas=createCanvas(800, 800);
-    canvas.parent("canvas-container");
-    background(51);
-    textSize(14);
-    
-    // parameter controls
-    m1Slider = createSlider(1, 100, 10);
-    m1Slider.position(20, 20);
-    m2Slider = createSlider(1, 100, 10);
-    m2Slider.position(20, 50);
-    eSlider = createSlider(0, 100, 50);
-    eSlider.position(20, 80);
-    iSlider = createSlider(0, 90, 90);
-    iSlider.position(20, 110);
-//    speedSlider = createSlider(1, 100, dt*1000);
-//    speedSlider.position(20, 110);
+  //create canvas
+  createCanvas(windowWidth, windowHeight);
+  textSize(15);
 
+  //create sliders
+  sliderM1 = createSlider(0, 100, 25);
+  sliderM1.position(20, 20);
+  sliderM2 = createSlider(0, 100, 25);
+  sliderM2.position(20, 50);
+  sliderE = createSlider(0, 100, 50);
+  sliderE.position(20, 80);
+  sliderI = createSlider(0, 90, 0);
+  sliderI.position(20, 110);
 
-    // create initial stars
-    star1 = new Star(m1, norma, e, 0)
-    star2 = new Star(m1, norma, e, PI)
+  //slider values
+  m1 = sliderM1.value();
+  m2 = sliderM2.value();
+  e = sliderE.value()/100;
+  i = sliderI.value();
 
-
+  star1 = new Star(m1, norma, e, 0);
+  star2 = new Star(m2, norma, e, 90);
 }
 
-function draw() {
-    // clear the frame
-    background(51);
-    star1.run();
-    star2.run();
+function draw(){
+  background(0);
 
-    // check if the speed of the simulation has changed
-//    if (speedSlider.value()/1000 != dt) {
-//    
-//        dt = speedSlider.value()/1000;
-//    }
+  //check if slider values have changed
+  if (sliderM1.value() != m1 || sliderM2.value() != m2 || sliderE.value() != e || sliderI.value() != i) {
+    create_binary(sliderM1.value(), sliderM2.value());
+    m1 = sliderM1.value();
+    m2 = sliderM2.value();
+    e = sliderE.value()/100;
+    i = sliderI.value();
+  }
 
-    //check if the parameters have changed, then recreate the scene
-    if (m2Slider.value() != m2 || m1Slider.value() != m1 || eSlider.value()/100 != e 
-            || iSlider.value() != i) {
-        e = eSlider.value()/100.;
-        create_binary(m1Slider.value(), m2Slider.value());
-        m2 = m2Slider.value();
-        m1 = m1Slider.value();
-        i = iSlider.value();
-    }
+  noStroke();
+  fill(220);
 
-    // draw the slider values
+  //slider names
+  text("mass 1", sliderM1.x * 2 + sliderM1.width, 35);
+  text("mass 2", sliderM2.x * 2 + sliderM2.width, 65);
+  text("eccentricity", sliderE.x * 2 + sliderE.width, 95);
+  text("inclination", sliderI.x * 2 + sliderI.width, 125);
+
+  //update the positions
+  //star1.update_position(t);
+  //star2.update_position(t);
+
+  //draw the stars
+  star1.draw_path();
+  star2.draw_path();
+  star1.draw();
+  star2.draw();
+
+  //draw the center of mass
+  stroke(127);
+  line(width/2.-3, height/2., width/2.+3, height/2.);
+  line(width/2., height/2.-3, width/2., height/2.+3);
+
+  //update time
+  t += dt;
+}
+
+function Star(m_, a_, e_, tau_){ 
+  this.pos = createVector(0,0,0);
+  this.m = m_;
+  this.e = e_;
+  this.r = 5*sqrt(m_);
+  this.a = a_;
+  this.tau = tau_;
+  this.path = [];
+
+  this.draw = function() {
+    //draw the star
     fill(220);
-    text('M'+'₁'+' = '+`${m1}`, 165, 35);
-    text(`M₂ = ${m2}`, 165, 65);
-    text(`e = ${e}`, 165, 95);
-    text(`i = ${i}°`, 165, 125);
-    text("w=90°", 165, 155);
-//    text(`speed = ${dt}`, 165, 125);
+    ellipse(width/2+this.pos.x, height/2.+this.pos.y, this.r, this.r);
+  };
 
-    // update the positions of both stars
-    star1.update_position(t);
-    star2.update_position(t);
+  this.draw_path = function() {
+    //check the length of the path, and remove one if necessary
+    if (this.path.length > 200) {
+      this.path.shift();
+    }
+    //draw the path of the orbit
+    for (var ii=0; ii<this.path.length-1; ii++) {
+      //change the color of the line
+      var shade = map(ii, 0, this.path.length, 50, 220);
+      stroke(shade);
+      //draw the line segment
+      line(this.path[ii].x+width/2, this.path[ii].y+height/2., this.path[ii+1].x+width/2, this.path[ii+1].y+height/2);
+    }
+  };
 
-    // draw the star stuffs
-    star1.draw_path();
-    star2.draw_path();
-    star1.draw();
-    star2.draw();
-
-    // draw the center of mass on top of everything
-    stroke(127);
-    line(width/2.-3, height/2., width/2.+3, height/2.);
-    line(width/2., height/2.-3, width/2., height/2.+3);
-
-    // increment the time
-    t += dt;
-    
-
+  this.update_position = function(t) {
+    //find the eccentric anomaly from the time
+    var E = this.t_to_E(t);
+    //the orbit mechanics happens here
+    this.pos.x = cos(this.tau)*this.a*(cos(E)-this.e);
+    this.pos.y = (sin(i*PI/180))*cos(this.tau)*this.a*(sqrt(1-pow(this.e, 2))*sin(E));
+    //add the current position to the path array
+    this.path.push(this.pos.copy());      
+  };
 }
 
 
-
-
-// this will create the binary star when parameters have changed
 function create_binary(m1, m2) {
-
     // determine the semi-major axes so that the larger of the two is equal to the variable norma;
     if (m1 > m2) {
         var sep1 = norma*m2/m1;
@@ -128,8 +127,6 @@ function create_binary(m1, m2) {
     }
 
     // create the two stars
-    star1 = new Star(m1,sep1, e,  0)
-    star2 = new Star(m2,sep2, e, PI)
-
+    star1 = new Star(m1, sep1, e,  0)
+    star2 = new Star(m2, sep2, e, PI)
 }
-
