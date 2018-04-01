@@ -5,15 +5,32 @@ var m2 = 25;
 var e = 0.5;
 var i = 0;
 var norma = 200;
+var r1;
+var r2;
+var v1;
+var v2;
+var a1;
+var a2;
+var G = 100000;
+var AU = 100;
+var console_flag = 0;
+
+
+
+
+
+//var G = 6.674*pow(10,-11);
+//var AU = 1.50e11; //150 million km = 150 billion m
+//var M = 1.98892e30;
 
 var t = 0;
-var dt = 10;
+var dt = 0.1;
 
 function setup() {
   //create canvas
   createCanvas(windowWidth, windowHeight);
   textSize(15);
-
+    //document.write(windowHeight + " " + windowWidth);
   //create sliders
   sliderM1 = createSlider(0, 100, 25);
   sliderM1.position(20, 20);
@@ -29,9 +46,16 @@ function setup() {
   m2 = sliderM2.value();
   e = sliderE.value()/100;
   i = sliderI.value();
+  r1 = createVector(0.2*AU, 0, 0);
+  r2 = createVector(-0.2*AU, 0, 0);  
+  v1 = createVector(0, 10, 0);
+  v2 = createVector(0, -10, 0);
+  a1 = createVector(0, 0, 0);
+  a2 = createVector(0, 0, 0);
+    
 
   star1 = new Star(m1, norma, e, 0);
-  star2 = new Star(m2, norma, e, 90);
+  star2 = new Star(m2, norma, e, PI);
 }
 
 function draw(){
@@ -55,9 +79,60 @@ function draw(){
   text("eccentricity", sliderE.x * 2 + sliderE.width, 95);
   text("inclination", sliderI.x * 2 + sliderI.width, 125);
 
-  //update the positions
-  //star1.update_position(t);
-  //star2.update_position(t);
+ 
+    r1.x = r1.x + v1.x * dt;
+    r2.x = r2.x + v2.x * dt;
+    r1.y = r1.y + v1.y * dt;
+    r2.y = r2.y + v2.y * dt;
+    a1.x = G*m2 * m1 * (r2.x - r1.x) / pow(sqrt(pow(r2.x - r1.x, 2) + pow(r2.y - r1.y, 2)), 3) / 10e3;
+    a1.y = G*m2 * m1 * (r2.y - r1.y) / pow(sqrt(pow(r2.x - r1.x, 2) + pow(r2.y - r1.y, 2)), 3) / 10e3;
+    v1.x = v1.x + a1.x * dt;
+    v1.y = v1.y + a1.y * dt;
+    a2.x = G*m2 * m1 * (r1.x - r2.x) / pow(sqrt(pow(r2.x - r1.x, 2) + pow(r2.y - r1.y, 2)), 3) / 10e3;
+    a2.y = G*m2 * m1 * (r1.y - r2.y) / pow(sqrt(pow(r2.x - r1.x, 2) + pow(r2.y - r1.y, 2)), 3) / 10e3;
+    v2.x = v2.x + a2.x * dt;
+    v2.y = v2.y + a2.y * dt;
+
+
+    /*if (abs(a1.x) > 10 || abs(a1.y) > 10 || abs(a2.x) > 10 || abs(a2.y) > 10) {
+        r1.x = 0;
+        r2.x = 0;
+        r1.y = 0;
+        r2.y = 0;
+        a1.x = 0;
+        a1.y = 0;
+        v1.x = 0;
+        v1.y = 0;
+        a2.x = 0;
+        a2.y = 0;
+        v2.x = 0;
+        v2.y = 0;
+    }*/
+
+    if (console_flag % 10 == 0) {
+        console.log("r1x " + r1.x);
+        console.log("r2 " + r2.x);
+        console.log("v1 " + v1.x);
+        console.log("v2 " + v2.x);
+        console.log("a1 " + a1.x);
+        console.log("a2 " + a2.x);
+        console.log("r1y " + r1.y);
+        console.log("r2 " + r2.y);
+        console.log("v1 " + v1.y);
+        console.log("v2 " + v2.y);
+        console.log("a1 " + a1.y);
+        console.log("a2 " + a2.y);
+    }
+   
+    
+    
+    
+    
+    //update the positions
+    star1.update_position(r1);
+    star2.update_position(r2);
+
+    //document.write(star1.pos.x + " " + star2.pos.x);
 
   //draw the stars
   star1.draw_path();
@@ -71,11 +146,15 @@ function draw(){
   line(width/2., height/2.-3, width/2., height/2.+3);
 
   //update time
-  t += dt;
+    t += dt;
+    console_flag += 1;
 }
 
-function Star(m_, a_, e_, tau_){ 
-  this.pos = createVector(0,0,0);
+
+
+function Star(m_, a_, e_, tau_) {
+  this.pos = createVector(0, 0, 0);
+    //this.vel = vel_;
   this.m = m_;
   this.e = e_;
   this.r = 5*sqrt(m_);
@@ -104,15 +183,24 @@ function Star(m_, a_, e_, tau_){
     }
   };
 
-  this.update_position = function(t) {
+    this.update_position = function (position) {
     //find the eccentric anomaly from the time
-    var E = this.t_to_E(t);
+   // var E = this.t_to_E(t);
     //the orbit mechanics happens here
-    this.pos.x = cos(this.tau)*this.a*(cos(E)-this.e);
-    this.pos.y = (sin(i*PI/180))*cos(this.tau)*this.a*(sqrt(1-pow(this.e, 2))*sin(E));
-    //add the current position to the path array
-    this.path.push(this.pos.copy());      
-  };
+      //this.pos.x = cos(this.tau)*this.a*(cos(t/24*PI)-this.e);
+     // this.pos.y = (sin(i*PI/180))*cos(this.tau)*this.a*(sqrt(1-pow(this.e, 2))*sin(t/24*PI));
+      
+      //add the current position to the path array
+        this.pos = position;
+        this.path.push(this.pos.copy());
+        //document.write(" (" + this.pos.x + " , " + this.pos.y + ") ");
+    };
+
+    this.update_velocity = function (velocity) {
+
+    }
+
+
 }
 
 
