@@ -1,14 +1,10 @@
 
-
+//might be able to remove these
 var e = 0.5;
 var i = 0;
 var norma = 200;
-/*var r1;
-var r2;
-var v1;
-var v2;
-var a1;
-var a2;*/
+var initial_spacing = 1;
+//play with these
 var G = 100000;
 var AU = 100;
 
@@ -19,11 +15,11 @@ var velocities = [];
 var accelerations = [];
 var stars = [];
 var sliders = [];
-var N = 3;
+var N = 4;
 
 
 var t = 0;
-var dt = 0.1;
+var dt = 0.02;
 var console_flag = 0;
 var setup_flag = 0
 
@@ -36,7 +32,7 @@ function setup() {
         textSize(15);
 
         for (var index = 0; index < N; index++) {
-            slider = createSlider(0, 100, 10);
+            slider = createSlider(0, 100, Math.random()*100);
             sliders.push(slider);
             sliders[index].position(20, 20 + 30 * index);
         }
@@ -46,8 +42,9 @@ function setup() {
 
     //creates stars and sets initial conditions
     for (var index = 0; index < N; index++) {
-        positions.push(createVector(cos(2 * PI * index / N) * 0.6 * AU, sin(2 * PI * index / N) * 0.6 * AU, 0));
+        positions.push(createVector(cos(2 * PI * index / N) * Math.random()*3 * AU, sin(2 * PI * index / N) * Math.random()*3 * AU, 0));
         velocities.push(createVector(cos(2 * PI * index / N) * 2, sin(2 * PI * index / N) * -2, 0));
+        //velocities.push(createVector(0, 0, 0));
         accelerations.push(createVector(0, 0, 0));
         star = new Star(masses[index], norma, e, PI);
         stars.push(star);
@@ -64,7 +61,7 @@ function draw(){
             masses[index] = sliders[index].value();
             stars[index].m = masses[index];
             stars[index].r = 5 * sqrt(masses[index]);
-            reset();
+            //reset();
         }
         //slider names
         text("Mass " + (index+1), sliders[index].x * 2 + sliders[index].width, 35 + 30 * index);
@@ -76,6 +73,7 @@ function draw(){
     //the primary physics engine generalized for N bodies
     var positions_copy = positions;
     var velocities_copy = velocities;
+    var acceleration_copy = accelerations;
 
     for (var primary = 0; primary < masses.length; primary++) {
         positions[primary].x = positions_copy[primary].x + velocities_copy[primary].x * dt;
@@ -84,23 +82,25 @@ function draw(){
         accelerations[primary].y = 0;
         for (var secondary = 0; secondary < masses.length; secondary++) {
             if (primary != secondary) {
-                norm2 = pow(sqrt(pow(positions_copy[secondary].x - positions_copy[primary].x, 2) + pow(positions_copy[secondary].y - positions_copy[primary].y, 2)), 3) ;
-                accelerations[primary].x += G * masses[primary] * masses[secondary] * (positions_copy[secondary].x - positions_copy[primary].x) / norm2 / 10e3;
-                accelerations[primary].y += G * masses[primary] * masses[secondary] * (positions_copy[secondary].y - positions_copy[primary].y) / norm2 / 10e3;
+                norm2 = pow(sqrt(pow(positions_copy[secondary].x - positions_copy[primary].x, 2) + pow(positions_copy[secondary].y - positions_copy[primary].y, 2)), 2) ;
+                accelerations[primary].x += G  * masses[secondary] * (positions_copy[secondary].x - positions_copy[primary].x) / norm2 / 10e3;
+                accelerations[primary].y += G  * masses[secondary] * (positions_copy[secondary].y - positions_copy[primary].y) / norm2 / 10e3;
             }     
         }
         //fix singularities here by modifying dt
-        if (accelerations[primary].x > 10 || accelerations[primary].y > 10) {
-            dt = 0.0001;
+       /* if (accelerations[primary].x > 3 || accelerations[primary].y > 3) {
+            //dt = 0.01;
         }
         else {
-            dt = 0.1;
-        }
-        velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
-        velocities[primary].y = velocities_copy[primary].y + accelerations[primary].y * dt;
-        dt = 0.1;
-        if (abs(positions[primary].x) > windowWidth/2 || abs(positions[primary].y) > windowHeight/2) {
-            reset()
+            //dt = 0.1;
+        }*/
+        
+            velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
+            velocities[primary].y = velocities_copy[primary].y + accelerations[primary].y * dt;
+        
+        //dt = 0.1;
+        if (abs(positions[primary].x) > windowWidth/2+200 || abs(positions[primary].y) > windowHeight/2+200) {
+           // reset();
         }
 
     }
