@@ -15,11 +15,12 @@ var velocities = [];
 var accelerations = [];
 var stars = [];
 var sliders = [];
-var N = 4;
+var N = 8;
+var colours = ['red', 'orange', 'yellow', 'white', 'gold', 'DarkOrange']
 
 
 var t = 0;
-var dt = 0.02;
+var dt = 0.015;
 var console_flag = 0;
 var setup_flag = 0
 
@@ -43,10 +44,10 @@ function setup() {
     //creates stars and sets initial conditions
     for (var index = 0; index < N; index++) {
         positions.push(createVector(cos(2 * PI * index / N) * Math.random()*3 * AU, sin(2 * PI * index / N) * Math.random()*3 * AU, 0));
-        velocities.push(createVector(cos(2 * PI * index / N) * 2, sin(2 * PI * index / N) * -2, 0));
+        velocities.push(createVector(cos(2 * PI * index / N + PI/4) * 3, sin(2 * PI * index / N + PI/4) * -3, 0));
         //velocities.push(createVector(0, 0, 0));
         accelerations.push(createVector(0, 0, 0));
-        star = new Star(masses[index], norma, e, PI);
+        star = new Star(masses[index], norma, e, PI, colours[Math.floor(Math.random() * colours.length)]);
         stars.push(star);
     }
     setup_flag = 1;
@@ -64,11 +65,13 @@ function draw(){
             //reset();
         }
         //slider names
+        noStroke();
+        fill(220);
         text("Mass " + (index+1), sliders[index].x * 2 + sliders[index].width, 35 + 30 * index);
     }
 
-  noStroke();
-  fill(220);
+  
+  
 
     //the primary physics engine generalized for N bodies
     var positions_copy = positions;
@@ -87,31 +90,29 @@ function draw(){
                 accelerations[primary].y += G  * masses[secondary] * (positions_copy[secondary].y - positions_copy[primary].y) / norm2 / 10e3;
             }     
         }
-        //fix singularities here by modifying dt
-       /* if (accelerations[primary].x > 3 || accelerations[primary].y > 3) {
-            //dt = 0.01;
-        }
-        else {
-            //dt = 0.1;
-        }*/
-        
             velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
             velocities[primary].y = velocities_copy[primary].y + accelerations[primary].y * dt;
         
-        //dt = 0.1;
-        if (abs(positions[primary].x) > windowWidth/2+200 || abs(positions[primary].y) > windowHeight/2+200) {
+       /* if (abs(positions[primary].x) > windowWidth/2+200 || abs(positions[primary].y) > windowHeight/2+200) {
            // reset();
-        }
+        }*/
 
     }
  
-    
+    var reset_flag = 0;
     //update the positions and draw stars
     for (var index = 0; index < N; index++) {
         stars[index].update_position(positions[index]);
         stars[index].draw_path();
         stars[index].draw();
+        if (abs(positions[index].x) > windowWidth / 2 || abs(positions[index].y) > windowHeight / 2) {
+            reset_flag++;
+        }
     }
+
+    if (reset_flag == N) {
+        reset();
+    } 
     
 //for troubleshooting
     if (console_flag % 10 == 0) {
@@ -131,7 +132,7 @@ function display_console() {
     //console.log();
 }
 
-function Star(m_, a_, e_, tau_) {
+function Star(m_, a_, e_, tau_,colour_) {
   this.pos = createVector(0, 0, 0);
     //this.vel = vel_;
   this.m = m_;
@@ -140,10 +141,12 @@ function Star(m_, a_, e_, tau_) {
   this.a = a_;
   this.tau = tau_;
   this.path = [];
+  this.colour = colour_;
 
   this.draw = function() {
-    //draw the star
-    fill(220);
+      //draw the star
+      //220 for white
+    fill(this.colour);
     ellipse(width/2+this.pos.x, height/2.+this.pos.y, this.r, this.r);
   };
 
@@ -178,17 +181,4 @@ function reset() {
       }
 }
 
-function create_binary(m1, m2) {
-    // determine the semi-major axes so that the larger of the two is equal to the variable norma;
-    if (m1 > m2) {
-        var sep1 = norma*m2/m1;
-        var sep2 = norma;
-    } else if (m1 <= m2) {
-        var sep1 = norma;
-        var sep2 = norma*m1/m2;
-    }
 
-    // create the two stars
-    star1 = new Star(m1, sep1, e,  0)
-    star2 = new Star(m2, sep2, e, PI)
-}
