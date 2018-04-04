@@ -37,19 +37,22 @@ var menu_created = 0;
 var num_stars_input;
 var submit_num;
 
+//variables for the input interfaces in the menu
+var input_slider;
+var input_mass_sliders = [];
+var input_x_pos
+var input_initial_x_pos = [];
+var input_initial_y_pos = [];
+var input_initial_x_vel = [];
+var input_initial_y_vel = [];
+
 //use this for setup menu
 function setup() {
     //create canvas
-
-
     createCanvas(windowWidth, windowHeight);
+    //start with a random star simulation of N stars
     generateButtons();
     generateRandomStars();
-
-
-
-
-
 
 }
 
@@ -57,10 +60,11 @@ function setup() {
 function draw() {
     background(0);
 
-
+    //if menu is not running run the simulation
     if (show_menu == 0) {
         menu_created = 0;
         //check if slider values have changed
+        //still display sliders and stars while paused
         for (var index = 0; index < N; index++) {
             if (sliders[index].value() != masses[index]) {
                 masses[index] = sliders[index].value();
@@ -74,6 +78,7 @@ function draw() {
             text("Mass " + (index + 1), sliders[index].x * 2 + sliders[index].width, 35 + 30 * index);
         }
 
+        //code runs when not paused this is the active portion of the sim
         if (paused == 0) {
 
 
@@ -104,16 +109,12 @@ function draw() {
                 }
                 velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
                 velocities[primary].y = velocities_copy[primary].y + accelerations[primary].y * dt;
-
-                /* if (abs(positions[primary].x) > windowWidth/2+200 || abs(positions[primary].y) > windowHeight/2+200) {
-                    // reset();
-                 }*/
-
             }
-
         }
+
         var reset_flag = 0;
         //update the positions and draw stars
+        //still runs while paused so that stars still appear
         for (var index = 0; index < N; index++) {
             stars[index].update_position(positions[index]);
             stars[index].draw_path();
@@ -122,18 +123,14 @@ function draw() {
                 reset_flag++;
             }
         }
-
-
+        //reset the simulation if all stars are off the screen
         if (reset_flag == N) {
             reset();
         }
-
-
-
         //update time
-        t += dt;
-        
+        t += dt;    
     }
+
     //menu
     else {
 
@@ -146,12 +143,16 @@ function draw() {
         menu_button.remove();
         randomize_button.position(20, 20);
 
+        //generate the star number input, this will not work if it is continuously being referenced, hence the if statement
         if (menu_created == 0) {
             createMenu();
         }
         menu_created = 1;
-        
 
+        for (var index = 0; index < input_mass_sliders.length; index++) {
+            text("Star " + (index + 1), input_mass_sliders[index].x, 95);
+            text("Mass", input_mass_sliders[index].x, 115);
+        }
     }
 
     //for troubleshooting
@@ -204,6 +205,7 @@ function Star(m_, colour_) {
     };
 }
 
+//resets the current simulation with currently incorrect inital conditions
 function reset() {
     for (var index2 = 0; index2 < N; index2++) {
         positions[index2] = createVector(cos(2 * PI * index2 / N) * 0.6 * AU, sin(2 * PI * index2 / N) * 0.6 * AU, 0);
@@ -232,6 +234,10 @@ function generateRandomStars() {
         randomize_button.remove();
         submit_num.remove();
         num_stars_input.remove();
+        for (var index = 0; index < input_mass_sliders.length; index++) {
+            input_mass_sliders[index].remove();
+        }
+        input_mass_sliders = [];
         generateButtons();
     }
     show_menu = 0;
@@ -251,7 +257,6 @@ function generateRandomStars() {
     for (var index = 0; index < N; index++) {
         positions.push(createVector(cos(2 * PI * index / N) * Math.random() * 3 * AU, sin(2 * PI * index / N) * Math.random() * 3 * AU, 0));
         velocities.push(createVector(cos(2 * PI * index / N + PI / 4) * 3, sin(2 * PI * index / N + PI / 4) * -3, 0));
-        //velocities.push(createVector(0, 0, 0));
         accelerations.push(createVector(0, 0, 0));
         star = new Star(masses[index], colours[Math.floor(Math.random() * colours.length)]);
         stars.push(star);
@@ -260,7 +265,6 @@ function generateRandomStars() {
 
 function pause() {
     paused = 1;
-
 }
 
 function unpause() {
@@ -270,7 +274,6 @@ function unpause() {
 function toggleMenu() {
     show_menu = 1;
 }
-
 
 function generateButtons() {
     //creates a pause button
@@ -311,10 +314,22 @@ function createMenu() {
 
 function setNumStars() {
     N = num_stars_input.value();
-    //num_stars_input.value('');
+    num_stars_input.value('');
+    createStarInputInterface();
 }
 
 function createStarInputInterface() {
-
+    for (var index = 0; index < input_mass_sliders.length; index++) {
+        input_mass_sliders[index].remove();
+    }
+    input_mass_sliders = [];
+    for (var index = 0; index < N; index++) {
+        input_slider = createSlider(0, 100, 25);
+        input_mass_sliders.push(input_slider);
+        
+        
+        fill(220);
+        input_mass_sliders[index].position(20 + 140 * index, 130);
+    }
 
 }
