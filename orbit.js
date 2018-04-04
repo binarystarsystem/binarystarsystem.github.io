@@ -58,49 +58,45 @@ var yp;
 var xv;
 var yv;
 
-//use this for setup menu
+//Create initial state of the system. Be very cautious when editing code in this program since global variables
+//are heavily used. This was a necessity since I was unable to pass and modify certain parameters of the Star class.
 function setup() {
-    //create canvas
     createCanvas(windowWidth, windowHeight);
-    //start with a random star simulation of N stars
+    //start with a random star simulation of N stars and M planets
     generateButtons();
     generateRandomStars();
     generateRandomPlanets();
-
 }
 
-//looping portion
+//Looping portion. Flags go up to either pause the simulation or exit the simulation into the menu
 function draw() {
     background(0);
-
-    //if menu is not running run the simulation
+    //If menu is not running run the simulation
     if (show_menu == 0) {
         menu_created = 0;
-        //check if slider values have changed
-        //still display sliders and stars while paused
+        //Check if slider values have changed and update the stars accordingly. This can be done even while paused
+        //Still display sliders and stars while paused but not while in the menu
         for (var index = 0; index < N; index++) {
             if (sliders[index].value() != masses[index]) {
                 masses[index] = sliders[index].value();
                 stars[index].m = masses[index];
                 stars[index].r = 5 * sqrt(masses[index]);
-                //reset();
+                //reset(); //May choose to reset with slider change but it is nice to change sizes within the same simulation
             }
-            //slider names
             noStroke();
             fill(220);
             text("Mass " + (index + 1), sliders[index].x * 2 + sliders[index].width, 35 + 30 * index);
         }
 
-        //code runs when not paused this is the active portion of the sim
+        //Code runs when not paused this is the active portion of the sim
         if (paused == 0) {
-
-
-            //the primary physics engine generalized for N bodies
+            //The primary physics engine generalized for N bodies
             var positions_copy = positions;
             var velocities_copy = velocities;
             var acceleration_copy = accelerations;
-
+            //Physics! Still time stepped but fairly effectively. Need to work on singularities more
             for (var primary = 0; primary < masses.length; primary++) {
+                //Update positions
                 positions[primary].x = positions_copy[primary].x + velocities_copy[primary].x * dt;
                 positions[primary].y = positions_copy[primary].y + velocities_copy[primary].y * dt;
                 accelerations[primary].x = 0;
@@ -109,7 +105,7 @@ function draw() {
                     if (primary != secondary) {
                         norm2 = pow(sqrt(pow(positions_copy[secondary].x - positions_copy[primary].x, 2) + pow(positions_copy[secondary].y - positions_copy[primary].y, 2)), 2);
                         if (positions_copy[secondary].x >= positions_copy[primary].x) {
-                            accelerations[primary].x += G * masses[secondary] / norm2 / 10e3;
+                            accelerations[primary].x += G * masses[secondary] / norm2 / 10e3; //We can get rid of these 10e3 I hope but they seem to help a lot
                         } else {
                             accelerations[primary].x -= G * masses[secondary] / norm2 / 10e3;
                         }
@@ -120,14 +116,14 @@ function draw() {
                         }
                     }
                 }
-                //handle singularities
-                //maybe set equal to singularity threshold rather than 0?
+                //Handle singularities
                 if (accelerations[primary].x > singularity_threshold || accelerations[primary].x < (-1 * singularity_threshold)) {
                     accelerations[primary].x = 0;
                 }
                 if (accelerations[primary].y > singularity_threshold || accelerations[primary].y < (-1 * singularity_threshold)) {
                     accelerations[primary].y = 0;
                 }
+                //Update velocities
                 velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
                 velocities[primary].y = velocities_copy[primary].y + accelerations[primary].y * dt;
             }
@@ -250,53 +246,29 @@ function reset() {
     }
 }
 
-/**
-* Generates random stars
-*/
+//generates N random stars
+//randomize mass and position, in a circle about the origin
 function generateRandomStars() {
     for (var index = 0; index < sliders.length; index++) {
         sliders[index].remove();
     }
-    masses = [];
-    positions = [];
-    velocities = [];
-    accelerations = [];
-    stars = [];
-    sliders = [];
-
+    zeroStarArrays();
     //removes menu buttons
     if (show_menu == 1) {
-        randomize_button.remove();
-        submit_num.remove();
-        num_stars_input.remove();
-        set_stars.remove();
-        for (var index = 0; index < input_mass_sliders.length; index++) {
-            input_mass_sliders[index].remove();
-            input_initial_x_pos[index].remove();
-            input_initial_y_pos[index].remove();
-            input_initial_x_vel[index].remove();
-            input_initial_y_vel[index].remove();
-        }
-        input_mass_sliders = [];
-        input_initial_x_pos = [];
-        input_initial_y_pos = [];
-        input_initial_x_vel = [];
-        input_initial_y_vel = [];
+        deleteMenu();
         generateButtons();
     }
     show_menu = 0;
     paused = 0;
     textSize(15);
 
+    //creates sliders with masses equal to star masses
     for (var index = 0; index < N; index++) {
         slider = createSlider(0, 100, Math.random() * 100);
         sliders.push(slider);
         sliders[index].position(20, 20 + 30 * index);
-    }
-    for (var index = 0; index < N; index++) {
         masses.push(sliders[index].value());
     }
-
     //creates stars and sets initial conditions
     for (var index = 0; index < N; index++) {
         positions.push(createVector(cos(2 * PI * index / N) * Math.random() * 3 * AU, sin(2 * PI * index / N) * Math.random() * 3 * AU, 0));
@@ -306,6 +278,15 @@ function generateRandomStars() {
         star = new Star(masses[index], colours[Math.floor(Math.random() * colours.length)]);
         stars.push(star);
     }
+}
+
+function zeroStarArrays() {
+    masses = [];
+    positions = [];
+    velocities = [];
+    accelerations = [];
+    stars = [];
+    sliders = [];
 }
 
 function pause() {
@@ -345,13 +326,7 @@ function randomizeSim() {
 
 function createMenu() {
     //N = 0;
-    masses = [];
-    positions = [];
-    velocities = [];
-    accelerations = [];
-    stars = [];
-    sliders = [];
-
+    zeroStarArrays();
     num_stars_input = createInput('');
     num_stars_input.position(20, 50);
     submit_num = createButton('Submit');
@@ -359,6 +334,28 @@ function createMenu() {
     submit_num.mousePressed(setNumStars);
 }
 
+//Removes all buttons, sliders and inputs from the menu screen and sets their arrays to empty
+function deleteMenu() {
+    randomize_button.remove();
+    submit_num.remove();
+    num_stars_input.remove();
+    set_stars.remove();
+    for (var index = 0; index < input_mass_sliders.length; index++) {
+        input_mass_sliders[index].remove();
+        input_initial_x_pos[index].remove();
+        input_initial_y_pos[index].remove();
+        input_initial_x_vel[index].remove();
+        input_initial_y_vel[index].remove();
+    }
+    input_mass_sliders = [];
+    input_initial_x_pos = [];
+    input_initial_y_pos = [];
+    input_initial_x_vel = [];
+    input_initial_y_vel = [];
+}
+
+//sets the number of stars equal to the value of the num_stars_input
+//creates a user interface to set the parameters for N stars
 function setNumStars() {
     N = num_stars_input.value();
     num_stars_input.value('');
@@ -400,9 +397,9 @@ function createStarInputInterface() {
     set_stars = createButton('Generate Star System');
     set_stars.position(20, 370);
     set_stars.mouseClicked(generateSetStars);
-
 }
 
+//generate M random planets
 function generateRandomPlanets() {
     planet_masses = [];
     planet_positions = [];
@@ -495,22 +492,7 @@ function generateSetStars() {
 
     //removes menu buttons
     if (show_menu == 1) {
-        randomize_button.remove();
-        submit_num.remove();
-        num_stars_input.remove();
-        set_stars.remove();
-        for (var index = 0; index < input_mass_sliders.length; index++) {
-            input_mass_sliders[index].remove();
-            input_initial_x_pos[index].remove();
-            input_initial_y_pos[index].remove();
-            input_initial_x_vel[index].remove();
-            input_initial_y_vel[index].remove();
-        }
-        input_mass_sliders = [];
-        input_initial_x_pos = [];
-        input_initial_y_pos = [];
-        input_initial_x_vel = [];
-        input_initial_y_vel = [];
+        deleteMenu();
         generateButtons();
     }
     show_menu = 0;
