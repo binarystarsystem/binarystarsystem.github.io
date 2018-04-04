@@ -32,6 +32,10 @@ var pause_button;
 var start_button;
 var menu_button;
 var randomize_button;
+var menu_created = 0;
+
+var num_stars_input;
+var submit_num;
 
 //use this for setup menu
 function setup() {
@@ -42,8 +46,8 @@ function setup() {
     generateButtons();
     generateRandomStars();
 
-    
-    
+
+
 
 
 
@@ -55,6 +59,7 @@ function draw() {
 
 
     if (show_menu == 0) {
+        menu_created = 0;
         //check if slider values have changed
         for (var index = 0; index < N; index++) {
             if (sliders[index].value() != masses[index]) {
@@ -123,15 +128,14 @@ function draw() {
             reset();
         }
 
-        //for troubleshooting
-        if (console_flag % 10 == 0) {
-            display_console;
-        }
+
 
         //update time
         t += dt;
-        console_flag += 1;
-    } else {
+        
+    }
+    //menu
+    else {
 
         //delete everything
         for (var index = 0; index < sliders.length; index++) {
@@ -141,13 +145,25 @@ function draw() {
         start_button.remove();
         menu_button.remove();
         randomize_button.position(20, 20);
-    
+
+        if (menu_created == 0) {
+            createMenu();
+        }
+        menu_created = 1;
+        
+
     }
+
+    //for troubleshooting
+    if (console_flag % 10 == 0) {
+        display_console();
+    }
+    console_flag += 1;
 
 }
 
 function display_console() {
-    //console.log();
+   console.log(N);
 }
 
 function Star(m_, colour_) {
@@ -214,6 +230,8 @@ function generateRandomStars() {
 
     if (show_menu == 1) {
         randomize_button.remove();
+        submit_num.remove();
+        num_stars_input.remove();
         generateButtons();
     }
     show_menu = 0;
@@ -270,4 +288,33 @@ function generateButtons() {
     pause_button.mouseClicked(pause);
     menu_button.mouseClicked(toggleMenu);
     randomize_button.mouseClicked(generateRandomStars);
+}
+
+function createMenu() {
+    //N = 0;
+    masses = [];
+    positions = [];
+    velocities = [];
+    accelerations = [];
+    stars = [];
+    sliders = [];
+
+    num_stars_input = createInput('');
+    num_stars_input.position(20, 50);
+    submit_num = createButton('Submit');
+    submit_num.position(20 + num_stars_input.width, 50);
+    submit_num.mousePressed(setNumStars);
+
+
+
+}
+
+function setNumStars() {
+    N = num_stars_input.value();
+    //num_stars_input.value('');
+}
+
+function createStarInputInterface() {
+
+
 }
