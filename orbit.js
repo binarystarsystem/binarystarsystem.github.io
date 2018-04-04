@@ -63,7 +63,7 @@ function setup() {
     //create canvas
     createCanvas(windowWidth, windowHeight);
     //start with a random star simulation of N stars
-    generateButtons(windowWidth);
+    generateButtons();
     generateRandomStars();
     generateRandomPlanets();
 
@@ -228,6 +228,7 @@ function Star(m_, colour_) {
             var shade = map(ii, 0, this.path.length, 50, 220);
             stroke(shade);
             //draw the line segment
+            console.log(this.path[ii].x);
             line(this.path[ii].x + width / 2, this.path[ii].y + height / 2., this.path[ii + 1].x + width / 2, this.path[ii + 1].y + height / 2);
         }
     };
@@ -319,17 +320,17 @@ function toggleMenu() {
     show_menu = 1;
 }
 
-function generateButtons(windowWidth) {
+function generateButtons() {
     //creates a pause button
     pause_button = createButton('Pause');
     start_button = createButton('Start');
     menu_button = createButton('Menu');
     randomize_button = createButton('Random');
 
-    pause_button.position(windowWidth - 250, 20, 20 + 30 * N);
-    start_button.position(windowWidth - 190, 20, 20 + 30 * N);
-    menu_button.position(windowWidth - 140, 20, 20 + 30 * N);
-    randomize_button.position(windowWidth - 85, 20, 20 + 30 * N);
+    pause_button.position(20, 20 + 30 * N);
+    start_button.position(80, 20 + 30 * N);
+    menu_button.position(130, 20 + 30 * N);
+    randomize_button.position(185, 20 + 30 * N);
 
     start_button.mouseClicked(unpause);
     pause_button.mouseClicked(pause);
@@ -380,13 +381,13 @@ function createStarInputInterface() {
     for (var index = 0; index < N; index++) {
         input_slider = createSlider(0, 100, 25);
         input_mass_sliders.push(input_slider);
-        input_x_pos = createInput('');
+        input_x_pos = createInput();
         input_initial_x_pos.push(input_x_pos);
-        input_y_pos = createInput('');
+        input_y_pos = createInput();
         input_initial_y_pos.push(input_y_pos);
-        input_x_vel = createInput('');
+        input_x_vel = createInput();
         input_initial_x_vel.push(input_x_vel);
-        input_y_vel = createInput('');
+        input_y_vel = createInput();
         input_initial_y_vel.push(input_y_vel);
 
         fill(220);
@@ -475,13 +476,13 @@ function generateSetStars() {
     sliders = [];
 
     for (var index = 0; index < N; index++) {
-        xp = input_initial_x_pos[index].value();
+        xp = Number(input_initial_x_pos[index].value());
         //input_initial_x_pos[index].value('');
-        yp = input_initial_y_pos[index].value();
+        yp = Number(input_initial_y_pos[index].value());
         //input_initial_y_pos[index].value('');
-        xv = input_initial_x_vel[index].value();
+        xv = Number(input_initial_x_vel[index].value());
         //input_initial_x_vel[index].value('');
-        yv = input_initial_y_vel[index].value();
+        yv = Number(input_initial_y_vel[index].value());
         //input_initial_y_vel[index].value('');
         console.log(xp);
         masses.push(input_mass_sliders[index].value());
