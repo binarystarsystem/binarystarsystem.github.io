@@ -1,8 +1,6 @@
 
 //constants, to be scaled
-var G = 190809; //units: (solar radii)/(solar mass units)*(km/s)^2
-//solar masses = 2*10^30
-//solar radii = 695600 km
+var G = 150000;
 var AU = 100;
 var singularity_threshold = 15;
 
@@ -54,6 +52,11 @@ var input_x_vel;
 var input_initial_x_vel = [];
 var input_y_vel;
 var input_initial_y_vel = [];
+var set_stars;
+var xp;
+var yp;
+var xv;
+var yv;
 
 //use this for setup menu
 function setup() {
@@ -128,7 +131,7 @@ function draw() {
                 velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
                 velocities[primary].y = velocities_copy[primary].y + accelerations[primary].y * dt;
             }
-           doPlanetPhysics();
+            doPlanetPhysics();
         }
 
         var reset_flag = 0;
@@ -147,16 +150,16 @@ function draw() {
             reset();
         }
         //draw planets
-       for (var index = 0; index < M; index++) {
+        for (var index = 0; index < M; index++) {
             planets[index].update_position(planet_positions[index]);
             planets[index].draw_path();
             planets[index].draw();
         }
         //update time
-        t += dt;    
+        t += dt;
     }
 
-    //menu
+        //menu
     else {
 
         //delete everything
@@ -187,15 +190,15 @@ function draw() {
     //for troubleshooting
     if (console_flag % 5 == 0) {
         display_console();
-        console.log('X ' + planet_accelerations[0].x);
-        console.log('Y ' + planet_accelerations[0].y);
+        //console.log('X ' + planet_accelerations[0].x);
+        //console.log('Y ' + planet_accelerations[0].y);
     }
     console_flag += 1;
 
 }
 
 function display_console() {
-   //console.log();
+    //console.log();
 }
 
 function Star(m_, colour_) {
@@ -265,6 +268,7 @@ function generateRandomStars() {
         randomize_button.remove();
         submit_num.remove();
         num_stars_input.remove();
+        set_stars.remove();
         for (var index = 0; index < input_mass_sliders.length; index++) {
             input_mass_sliders[index].remove();
             input_initial_x_pos[index].remove();
@@ -376,15 +380,15 @@ function createStarInputInterface() {
     for (var index = 0; index < N; index++) {
         input_slider = createSlider(0, 100, 25);
         input_mass_sliders.push(input_slider);
-        input_x_pos = createInput('',Number);
+        input_x_pos = createInput('');
         input_initial_x_pos.push(input_x_pos);
-        input_y_pos = createInput('', Number);
+        input_y_pos = createInput('');
         input_initial_y_pos.push(input_y_pos);
-        input_x_vel = createInput('', Number);
+        input_x_vel = createInput('');
         input_initial_x_vel.push(input_x_vel);
-        input_y_vel = createInput('', Number);
-        input_initial_y_vel.push(input_y_vel);    
-        
+        input_y_vel = createInput('');
+        input_initial_y_vel.push(input_y_vel);
+
         fill(220);
         input_mass_sliders[index].position(20 + 180 * index, 130);
         input_initial_x_pos[index].position(input_mass_sliders[index].x, 180);
@@ -392,6 +396,9 @@ function createStarInputInterface() {
         input_initial_x_vel[index].position(input_mass_sliders[index].x, 280);
         input_initial_y_vel[index].position(input_mass_sliders[index].x, 330);
     }
+    set_stars = createButton('Generate Star System');
+    set_stars.position(20, 370);
+    set_stars.mouseClicked(generateSetStars);
 
 }
 
@@ -430,28 +437,96 @@ function doPlanetPhysics() {
         planet_accelerations[primary].x = 0;
         planet_accelerations[primary].y = 0;
         for (var secondary = 0; secondary < masses.length; secondary++) {
-                norm2 = pow(sqrt(pow(positions[secondary].x - planet_positions_copy[primary].x, 2) + pow(positions[secondary].y - planet_positions_copy[primary].y, 2)), 2);
-                if (positions[secondary].x >= planet_positions_copy[primary].x) {
-                    planet_accelerations[primary].x += G * masses[secondary] / norm2 / 10e3;
-                } else {
-                    planet_accelerations[primary].x -= G * masses[secondary] / norm2 / 10e3;
-                }
-                if (positions[secondary].y >= planet_positions_copy[primary].y) {
-                    planet_accelerations[primary].y += G * masses[secondary] / norm2 / 10e3;
-                } else {
-                    planet_accelerations[primary].y -= G * masses[secondary] / norm2 / 10e3;
-                }
+            norm2 = pow(sqrt(pow(positions[secondary].x - planet_positions_copy[primary].x, 2) + pow(positions[secondary].y - planet_positions_copy[primary].y, 2)), 2);
+            if (positions[secondary].x >= planet_positions_copy[primary].x) {
+                planet_accelerations[primary].x += G * masses[secondary] / norm2 / 10e3;
+            } else {
+                planet_accelerations[primary].x -= G * masses[secondary] / norm2 / 10e3;
+            }
+            if (positions[secondary].y >= planet_positions_copy[primary].y) {
+                planet_accelerations[primary].y += G * masses[secondary] / norm2 / 10e3;
+            } else {
+                planet_accelerations[primary].y -= G * masses[secondary] / norm2 / 10e3;
+            }
         }
         //remove singularities
         //singularity threshold to be modified
-        if (planet_accelerations[primary].x > singularity_threshold || planet_accelerations[primary].x < (-1*singularity_threshold)) {
+        if (planet_accelerations[primary].x > singularity_threshold || planet_accelerations[primary].x < (-1 * singularity_threshold)) {
             planet_accelerations[primary].x = 0;
         }
-        if (planet_accelerations[primary].y > singularity_threshold || planet_accelerations[primary].y < (-1*singularity_threshold)) {
+        if (planet_accelerations[primary].y > singularity_threshold || planet_accelerations[primary].y < (-1 * singularity_threshold)) {
             planet_accelerations[primary].y = 0;
         }
         //update velocity of planets
         planet_velocities[primary].x = planet_velocities_copy[primary].x + planet_accelerations[primary].x * dt;
         planet_velocities[primary].y = planet_velocities_copy[primary].y + planet_accelerations[primary].y * dt;
     }
+}
+
+function generateSetStars() {
+    for (var index = 0; index < sliders.length; index++) {
+        sliders[index].remove();
+    }
+    masses = [];
+    positions = [];
+    velocities = [];
+    accelerations = [];
+    stars = [];
+    sliders = [];
+
+    for (var index = 0; index < N; index++) {
+        xp = input_initial_x_pos[index].value();
+        //input_initial_x_pos[index].value('');
+        yp = input_initial_y_pos[index].value();
+        //input_initial_y_pos[index].value('');
+        xv = input_initial_x_vel[index].value();
+        //input_initial_x_vel[index].value('');
+        yv = input_initial_y_vel[index].value();
+        //input_initial_y_vel[index].value('');
+        console.log(xp);
+        masses.push(input_mass_sliders[index].value());
+        positions.push(createVector(xp, yp, 0));
+        velocities.push(createVector(xv, yv, 0));
+        accelerations.push(createVector(0, 0, 0));
+        star = new Star(masses[index], colours[Math.floor(Math.random() * colours.length)]);
+        stars.push(star);
+    }
+
+    //removes menu buttons
+    if (show_menu == 1) {
+        randomize_button.remove();
+        submit_num.remove();
+        num_stars_input.remove();
+        set_stars.remove();
+        for (var index = 0; index < input_mass_sliders.length; index++) {
+            input_mass_sliders[index].remove();
+            input_initial_x_pos[index].remove();
+            input_initial_y_pos[index].remove();
+            input_initial_x_vel[index].remove();
+            input_initial_y_vel[index].remove();
+        }
+        input_mass_sliders = [];
+        input_initial_x_pos = [];
+        input_initial_y_pos = [];
+        input_initial_x_vel = [];
+        input_initial_y_vel = [];
+        generateButtons();
+    }
+    show_menu = 0;
+    paused = 0;
+    textSize(15);
+
+    for (var index = 0; index < N; index++) {
+        slider = createSlider(0, 100, masses[index]);
+        sliders.push(slider);
+        sliders[index].position(20, 20 + 30 * index);
+    }
+
+    M = 0;
+    planet_masses = [];
+    planet_positions = [];
+    planet_velocities = [];
+    planet_accelerations = [];
+    planets = [];
+    
 }
