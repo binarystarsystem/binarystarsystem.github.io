@@ -39,24 +39,10 @@ function setup() {
 
 
     createCanvas(windowWidth, windowHeight);
-
+    generateButtons();
     generateRandomStars();
 
-    //creates a pause button
-    pause_button = createButton('Pause');
-    start_button = createButton('Start');
-    menu_button = createButton('Menu');
-    randomize_button = createButton('Random');
-
-    pause_button.position(20, 20 + 30 * N);
-    start_button.position(80, 20 + 30 * N);
-    menu_button.position(130, 20 + 30 * N);
-    randomize_button.position(185, 20 + 30 * N);
-
-    start_button.mouseClicked(unpause);
-    pause_button.mouseClicked(pause);
-    menu_button.mouseClicked(toggleMenu);
-    randomize_button.mouseClicked(generateRandomStars);
+    
     
 
 
@@ -146,11 +132,16 @@ function draw() {
         t += dt;
         console_flag += 1;
     } else {
+
+        //delete everything
         for (var index = 0; index < sliders.length; index++) {
             sliders[index].remove();
         }
-       
-
+        pause_button.remove();
+        start_button.remove();
+        menu_button.remove();
+        randomize_button.position(20, 20);
+    
     }
 
 }
@@ -221,6 +212,10 @@ function generateRandomStars() {
     stars = [];
     sliders = [];
 
+    if (show_menu == 1) {
+        randomize_button.remove();
+        generateButtons();
+    }
     show_menu = 0;
     paused = 0;
     textSize(15);
@@ -258,3 +253,21 @@ function toggleMenu() {
     show_menu = 1;
 }
 
+
+function generateButtons() {
+    //creates a pause button
+    pause_button = createButton('Pause');
+    start_button = createButton('Start');
+    menu_button = createButton('Menu');
+    randomize_button = createButton('Random');
+
+    pause_button.position(20, 20 + 30 * N);
+    start_button.position(80, 20 + 30 * N);
+    menu_button.position(130, 20 + 30 * N);
+    randomize_button.position(185, 20 + 30 * N);
+
+    start_button.mouseClicked(unpause);
+    pause_button.mouseClicked(pause);
+    menu_button.mouseClicked(toggleMenu);
+    randomize_button.mouseClicked(generateRandomStars);
+}
