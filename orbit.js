@@ -63,7 +63,7 @@ function setup() {
     //create canvas
     createCanvas(windowWidth, windowHeight);
     //start with a random star simulation of N stars
-    generateButtons();
+    generateButtons(windowWidth);
     generateRandomStars();
     generateRandomPlanets();
 
@@ -319,17 +319,17 @@ function toggleMenu() {
     show_menu = 1;
 }
 
-function generateButtons() {
+function generateButtons(windowWidth) {
     //creates a pause button
     pause_button = createButton('Pause');
     start_button = createButton('Start');
     menu_button = createButton('Menu');
     randomize_button = createButton('Random');
 
-    pause_button.position(20, 20 + 30 * N);
-    start_button.position(80, 20 + 30 * N);
-    menu_button.position(130, 20 + 30 * N);
-    randomize_button.position(185, 20 + 30 * N);
+    pause_button.position(windowWidth - 250, 20, 20 + 30 * N);
+    start_button.position(windowWidth - 190, 20, 20 + 30 * N);
+    menu_button.position(windowWidth - 140, 20, 20 + 30 * N);
+    randomize_button.position(windowWidth - 85, 20, 20 + 30 * N);
 
     start_button.mouseClicked(unpause);
     pause_button.mouseClicked(pause);
