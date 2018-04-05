@@ -38,6 +38,7 @@ var planets = [];
 var planet_colours = [];
 var planet;
 var parent_star;
+var planet_flag = 0;
 
 var t = 0;
 var dt = 24e3;
@@ -246,7 +247,7 @@ They also keep the colour and mass consistent, since these terms determine how t
 The position update function should be called to change the position that the star is drawn at, though
 this does not effect the actual physics of the star
 */
-function Star(m_, colour_) {
+function Star(m_, colour_, planet_flag_) {
     this.pos = createVector(0, 0, 0);
     this.m = m_;
     this.r = scale_radius * sqrt(m_);
@@ -256,29 +257,37 @@ function Star(m_, colour_) {
     this.draw = function () {
         //draw the star
         //220 for white
-        noStroke();
-        fill(this.colour);
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 20, this.r - 20);
-        fill(colorAlpha(this.colour, 0.95));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 18, this.r - 18);
-        fill(colorAlpha(this.colour, 0.90));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 16, this.r - 16);
-        fill(colorAlpha(this.colour, 0.80));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 14, this.r - 14);
-        fill(colorAlpha(this.colour, 0.70));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 12, this.r - 12);
-        fill(colorAlpha(this.colour, 0.60));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 10, this.r - 10);
-        fill(colorAlpha(this.colour, 0.50));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 8, this.r - 8);
-        fill(colorAlpha(this.colour, 0.40));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 6, this.r - 6);
-        fill(colorAlpha(this.colour, 0.30));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 4, this.r - 4);
-        fill(colorAlpha(this.colour, 0.20));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 2, this.r - 2);
-        fill(colorAlpha(this.colour, 0.10));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r, this.r);
+
+        if (planet_flag_ == 1){
+	        noStroke();
+	        fill(this.colour);
+	        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r, this.r);
+        }
+        else{
+	        noStroke();
+	        fill(this.colour);
+	        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 20, this.r - 20);
+	        fill(colorAlpha(this.colour, 0.95));
+	        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 18, this.r - 18);
+	        fill(colorAlpha(this.colour, 0.90));
+	        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 16, this.r - 16);
+	        fill(colorAlpha(this.colour, 0.80));
+	        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 14, this.r - 14);
+	        fill(colorAlpha(this.colour, 0.70));
+	        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 12, this.r - 12);
+	        fill(colorAlpha(this.colour, 0.60));
+	        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 10, this.r - 10);
+	        fill(colorAlpha(this.colour, 0.50));
+	        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 8, this.r - 8);
+	        fill(colorAlpha(this.colour, 0.40));
+	        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 6, this.r - 6);
+	        fill(colorAlpha(this.colour, 0.30));
+	        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 4, this.r - 4);
+	        fill(colorAlpha(this.colour, 0.20));
+	        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 2, this.r - 2);
+	        fill(colorAlpha(this.colour, 0.10));
+	        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r, this.r);
+        }
     };
     //draws a tail behind the star
     this.draw_path = function () {
@@ -357,7 +366,8 @@ function generateRandomStars() {
         //velocities.push(createVector(cos(2 * PI * index / N + PI / 4) * 3, sin(2 * PI * index / N + PI / 4) * -3, 0));
         velocities.push(createVector(0, 0, 0));
         accelerations.push(createVector(0, 0, 0));
-        star = new Star(masses[index], colours[Math.floor(Math.random() * colours.length)]);
+        planet_flag = 0;
+        star = new Star(masses[index], colours[Math.floor(Math.random() * colours.length)], planet_flag);
         stars.push(star);
     }
 }
@@ -559,7 +569,8 @@ function generateRandomPlanets() {
         planet_positions.push(createVector(positions[parent_star].x + 25 + 20* index, positions[parent_star].y, 0));
         planet_velocities.push(createVector(0, 2, 0));
         planet_accelerations.push(createVector(0, 0, 0));
-        planet = new Star(planet_masses[index], 'white');
+        planet_flag = 1;
+        planet = new Star(planet_masses[index], 'white', planet_flag);
         planets.push(planet);
         //console.log(planet_positions[index].x);
     }
@@ -662,7 +673,8 @@ function generateSetStars() {
         positions.push(createVector(Number(input_initial_x_pos[index].value()), Number(input_initial_y_pos[index].value()), 0));
         velocities.push(createVector(Number(input_initial_x_vel[index].value()), Number(input_initial_y_vel[index].value()), 0));
         accelerations.push(createVector(0, 0, 0));
-        star = new Star(masses[index], colours[Math.floor(Math.random() * colours.length)]);
+        planet_flag = 0;
+        star = new Star(masses[index], colours[Math.floor(Math.random() * colours.length)], planet_flag);
         stars.push(star);
     }
     //remove menu buttons in generateSetPlanets() instead of here
@@ -693,7 +705,8 @@ function generateSetPlanets() {
         planet_positions.push(createVector(Number(planet_input_initial_x_pos[index].value()), Number(planet_input_initial_y_pos[index].value()), 0));
         planet_velocities.push(createVector(Number(planet_input_initial_x_vel[index].value()), Number(planet_input_initial_y_vel[index].value()), 0));
         planet_accelerations.push(createVector(0, 0, 0));
-        planet = new Star(planet_masses[index], 'white');
+        planet_flag = 1;
+        planet = new Star(planet_masses[index], 'white', planet_flag);
         planets.push(planet);
     }
     //removes menu buttons
@@ -734,9 +747,10 @@ function generateBinaryOrbit() {
     velocities.push(createVector(0, 21, 0));
     accelerations.push(createVector(0, 0, 0));
     accelerations.push(createVector(0, 0, 0));
-    star = new Star(masses[0], colours[Math.floor(Math.random() * colours.length)]);
+    planet_flag = 0;
+    star = new Star(masses[0], colours[Math.floor(Math.random() * colours.length)], planet_flag);
     stars.push(star);
-    star = new Star(masses[1], colours[Math.floor(Math.random() * colours.length)]);
+    star = new Star(masses[1], colours[Math.floor(Math.random() * colours.length)], planet_flag);
     stars.push(star);
 
     //Generates the adjustable sliders for inside the physics simulator
