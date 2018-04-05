@@ -359,8 +359,11 @@ function randomizeSim() {
     generateRandomPlanets();
 }
 
+/*
+Generates the initial menu. If # Planets or # Stars is pressed it updates N or M and generates 
+input spaces so that the user can manually set parameters
+*/
 function createMenu() {
-    //N = 0;
     zeroStarArrays();
     num_stars_input = createInput('');
     num_stars_input.position(20, 50);
@@ -381,10 +384,10 @@ function deleteMenu() {
     num_stars_input.remove();
     submit_num_planets.remove();
     num_planets_input.remove();
-    deleteInputInterface(); 
     if (set_stars != null) {
         set_stars.remove();
     }
+    deleteInputInterface();   
 }
 
 function deleteInputInterface() {
@@ -579,6 +582,9 @@ function doPlanetPhysics() {
     }
 }
 
+/*
+Generates stars based on user input in menu
+*/
 function generateSetStars() {
     for (var index = 0; index < sliders.length; index++) {
         sliders[index].remove();
@@ -590,13 +596,60 @@ function generateSetStars() {
         yp = Number(input_initial_y_pos[index].value());
         xv = Number(input_initial_x_vel[index].value());
         yv = Number(input_initial_y_vel[index].value());
-        console.log(xp);
+        //console.log(xp);
         masses.push(input_mass_sliders[index].value() / scale_mass_slider);
         positions.push(createVector(xp, yp, 0));
         velocities.push(createVector(xv, yv, 0));
         accelerations.push(createVector(0, 0, 0));
         star = new Star(masses[index], colours[Math.floor(Math.random() * colours.length)]);
         stars.push(star);
+    }
+
+    //removes menu buttons
+  /* if (show_menu == 1) {
+        deleteMenu();
+        generateButtons();
+    }
+    show_menu = 0;
+    paused = 0;
+    textSize(15);*/
+
+    for (var index = 0; index < N; index++) {
+        slider = createSlider(0, 100, masses[index]*25);
+        sliders.push(slider);
+        sliders[index].position(20, 20 + 30 * index);
+    }
+    
+    //M = 0;
+    generateSetPlanets();
+
+}
+
+function zeroPlanetArrays(){
+    planet_masses = [];
+    planet_positions = [];
+    planet_velocities = [];
+    planet_accelerations = [];
+    planets = [];
+}
+/*
+Generates planets based on user input in menu
+NEED TO FINISH THIS! TOP PRIORITY
+*/
+function generateSetPlanets() {  
+    zeroPlanetArrays(); 
+    for (var index = 0; index < M; index++) {
+        xp = Number(planet_input_initial_x_pos[index].value());
+        yp = Number(planet_input_initial_y_pos[index].value());
+        xv = Number(planet_input_initial_x_vel[index].value());
+        yv = Number(planet_input_initial_y_vel[index].value());
+        console.log(xp);
+        planet_masses.push(Number(planet_input_masses[index].value()));
+        planet_positions.push(createVector(xp, yp, 0));
+        planet_velocities.push(createVector(xv, yv, 0));
+        planet_accelerations.push(createVector(0, 0, 0));
+        planet = new Star(planet_masses[index], 'blue');
+        planets.push(planet);
     }
 
     //removes menu buttons
@@ -607,20 +660,6 @@ function generateSetStars() {
     show_menu = 0;
     paused = 0;
     textSize(15);
-
-    for (var index = 0; index < N; index++) {
-        slider = createSlider(0, 100, masses[index]*25);
-        sliders.push(slider);
-        sliders[index].position(20, 20 + 30 * index);
-    }
-    
-    M = 0;
-    planet_masses = [];
-    planet_positions = [];
-    planet_velocities = [];
-    planet_accelerations = [];
-    planets = [];
-
 }
 
 
