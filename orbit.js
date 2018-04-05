@@ -89,7 +89,11 @@ function setup() {
     generateRandomPlanets();
 }
 
-//Looping portion. Flags go up to either pause the simulation or exit the simulation into the menu
+/*
+This is the primary looping portion of the code
+Flags will determine whether the simulation is in pause mode, running mode or menu mode
+This portion is also what generates all text and non-input elements
+*/
 function draw() {
     background(0);
     //If menu is not running run the simulation
@@ -108,7 +112,6 @@ function draw() {
             fill(220);
             text("Mass " + (index + 1), sliders[index].x * 2 + sliders[index].width, 35 + 30 * index);
         }
-
         //Code runs when not paused this is the active portion of the sim
         if (paused == 0) {
             //The primary physics engine generalized for N bodies
@@ -138,6 +141,8 @@ function draw() {
                     }
                 }
                 //Handle singularities 
+                //Rails accelerations at a threshold value. This could be edited if needed
+                //We may want to handle singularities in the looping portion to isolate contributions from each star
                 if (accelerations[primary].x > singularity_threshold) {
                     accelerations[primary].x = singularity_threshold;
                 }
@@ -154,9 +159,9 @@ function draw() {
                 velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
                 velocities[primary].y = velocities_copy[primary].y + accelerations[primary].y * dt;
             }
+            //See planet physics function, similar to above physics
            doPlanetPhysics();
         }
-
         var reset_flag = 0;
         //update the positions and draw stars
         //still runs while paused so that stars still appear
@@ -175,16 +180,15 @@ function draw() {
         //draw planets
         for (var index = 0; index < M; index++) {
             planets[index].update_position(planet_positions[index]);
+            //comment out line bellow to remove planet paths
             planets[index].draw_path();
             planets[index].draw();
         }
         //update time
         t += dt;
     }
-
     //menu
     else {
-
         //delete everything
         for (var index = 0; index < sliders.length; index++) {
             sliders[index].remove();
@@ -193,13 +197,12 @@ function draw() {
         start_button.remove();
         menu_button.remove();
         randomize_button.position(20, 20);
-
         //generate the star number input, this will not work if it is continuously being referenced, hence the if statement
         if (menu_created == 0) {
             createMenu();
         }
         menu_created = 1;
-
+        //generate text for the star and planet inputs
         for (var index = 0; index < input_mass_sliders.length; index++) {
             text("Star " + (index + 1), input_mass_sliders[index].x, 95);
             text("Mass", input_mass_sliders[index].x, 115);
@@ -208,29 +211,38 @@ function draw() {
             text("Initial X Velocity", input_mass_sliders[index].x, 270);
             text("Initial Y Velocity", input_mass_sliders[index].x, 320);
         }
+        //for troubleshooting
+        //console.log(M);
+        for (var index = 0; index < planet_input_masses.length; index++) {
+            text("Mass of Planet " + (index + 1), planet_input_masses[index].x, 370);
+            text("Initial X Position", planet_input_masses[index].x, 420);
+            text("Initial Y Position", planet_input_masses[index].x, 470);
+            text("Initial X Velocity", planet_input_masses[index].x, 520);
+            text("Initial Y Velocity", planet_input_masses[index].x, 570);       
+        }
     }
-
     //for troubleshooting
     if (console_flag % 5 == 0) {
-        display_console();
         //console.log('X ' + planet_accelerations[0].x);
         //console.log('Y ' + planet_accelerations[0].y);
     }
     console_flag += 1;
-
 }
 
-function display_console() {
-    //console.log();
-}
-
+/*
+Heavily modified star object. Most of the actual physics is conducted using global arrays
+However Star objects are still used to draw the stars and their paths
+They also keep the colour and mass consistent, since these terms determine how the star is draw
+The position update function should be called to change the position that the star is drawn at, though
+this does not effect the actual physics of the star
+*/
 function Star(m_, colour_) {
     this.pos = createVector(0, 0, 0);
     this.m = m_;
     this.r = scale_radius * sqrt(m_);
     this.path = [];
     this.colour = colour_;
-
+    //draws an elipse representing the star
     this.draw = function () {
         //draw the star
         //220 for white
@@ -238,7 +250,7 @@ function Star(m_, colour_) {
         fill(this.colour);
         ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r, this.r);
     };
-
+    //draws a tail behind the star
     this.draw_path = function () {
         stroke(127);
         //check the length of the path, and remove one if necessary
@@ -255,7 +267,7 @@ function Star(m_, colour_) {
             line(this.path[ii].x + width / 2, this.path[ii].y + height / 2., this.path[ii + 1].x + width / 2, this.path[ii + 1].y + height / 2);
         }
     };
-
+    //updates the position that the star is drawn at
     this.update_position = function (position) {
         //add the current position to the path array
         this.pos = position;
@@ -281,6 +293,7 @@ function generateRandomStars() {
     }
     zeroStarArrays();
     //removes menu buttons
+    
     if (show_menu == 1) {
         deleteMenu();
         generateButtons();
@@ -371,11 +384,12 @@ function deleteMenu() {
     randomize_button.remove();
     submit_num.remove();
     num_stars_input.remove();
-    set_stars.remove();
     submit_num_planets.remove();
     num_planets_input.remove();
-    deleteInputInterface();
-    
+    deleteInputInterface(); 
+    if (set_stars != null) {
+        set_stars.remove();
+    }
 }
 
 function deleteInputInterface() {
@@ -416,7 +430,7 @@ function setNumStars() {
 function setNumPlanets() {
     M = num_planets_input.value();
     num_planets_input.value('');
-    //createPlanetInputInterface();
+    createStarInputInterface();
 }
 
 function createStarInputInterface() {
@@ -438,7 +452,7 @@ function createStarInputInterface() {
         input_initial_y_pos[index].position(input_mass_sliders[index].x, 230);
         input_initial_x_vel[index].position(input_mass_sliders[index].x, 280);
         input_initial_y_vel[index].position(input_mass_sliders[index].x, 330);
-    }/*
+    }
     for (var index = 0; index < M; index++) {
         planet_input_mass = createInput();
         planet_input_masses.push(planet_input_mass);
@@ -450,18 +464,22 @@ function createStarInputInterface() {
         planet_input_initial_x_vel.push(planet_input_x_vel);
         planet_input_y_vel = createInput();
         planet_input_initial_y_vel.push(planet_input_y_vel);
-        planet_input_masses[index].position(20 + 180*index, 380);
+        planet_input_masses[index].position(20 + 180 * index, 380);
         planet_input_initial_x_pos[index].position(planet_input_masses[index].x, 430);
         planet_input_initial_y_pos[index].position(planet_input_masses[index].x, 480);
         planet_input_initial_x_vel[index].position(planet_input_masses[index].x, 530);
         planet_input_initial_y_vel[index].position(planet_input_masses[index].x, 580);
-    }*/
+    }
     set_stars = createButton('Generate Star System');
-    set_stars.position(20, 650);
+    set_stars.position(20, 630);
     set_stars.mouseClicked(generateSetStars);
 }
 
+
+
 //generate M random planets
+//planets naturally spawn around stars with some inital velocity. It may be nice to modify this initial velocity so that the 
+//planets orbit right away
 function generateRandomPlanets() {
     planet_masses = [];
     planet_positions = [];
@@ -570,22 +588,13 @@ function generateSetStars() {
     for (var index = 0; index < sliders.length; index++) {
         sliders[index].remove();
     }
-    masses = [];
-    positions = [];
-    velocities = [];
-    accelerations = [];
-    stars = [];
-    sliders = [];
+    zeroStarArrays();
 
     for (var index = 0; index < N; index++) {
         xp = Number(input_initial_x_pos[index].value());
-        //input_initial_x_pos[index].value('');
         yp = Number(input_initial_y_pos[index].value());
-        //input_initial_y_pos[index].value('');
         xv = Number(input_initial_x_vel[index].value());
-        //input_initial_x_vel[index].value('');
         yv = Number(input_initial_y_vel[index].value());
-        //input_initial_y_vel[index].value('');
         console.log(xp);
         masses.push(input_mass_sliders[index].value() / scale_mass_slider);
         positions.push(createVector(xp, yp, 0));
@@ -609,7 +618,7 @@ function generateSetStars() {
         sliders.push(slider);
         sliders[index].position(20, 20 + 30 * index);
     }
-
+    
     M = 0;
     planet_masses = [];
     planet_positions = [];
@@ -618,3 +627,6 @@ function generateSetStars() {
     planets = [];
 
 }
+
+
+
