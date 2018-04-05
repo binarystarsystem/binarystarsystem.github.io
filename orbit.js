@@ -47,6 +47,8 @@ var menu_created = 0;
 
 var num_stars_input;
 var submit_num;
+var num_planets_input;
+var submit_num_planets;
 
 //variables for the input interfaces in the menu
 var input_slider;
@@ -354,9 +356,14 @@ function createMenu() {
     zeroStarArrays();
     num_stars_input = createInput('');
     num_stars_input.position(20, 50);
-    submit_num = createButton('Submit');
+    submit_num = createButton('# Stars');
     submit_num.position(20 + num_stars_input.width, 50);
     submit_num.mousePressed(setNumStars);
+    num_planets_input = createInput('');
+    num_planets_input.position(20 + num_stars_input.width + 70, 50);
+    submit_num_planets = createButton('# Planets');
+    submit_num_planets.position(20 + num_planets_input.width + num_stars_input.width + 70, 50);
+    submit_num_planets.mousePressed(setNumPlanets);
 }
 
 //Removes all buttons, sliders and inputs from the menu screen and sets their arrays to empty
@@ -365,7 +372,10 @@ function deleteMenu() {
     submit_num.remove();
     num_stars_input.remove();
     set_stars.remove();
+    submit_num_planets.remove();
+    num_planets_input.remove();
     deleteInputInterface();
+    
 }
 
 function deleteInputInterface() {
@@ -376,11 +386,23 @@ function deleteInputInterface() {
         input_initial_x_vel[index].remove();
         input_initial_y_vel[index].remove();
     }
+    for (var index = 0; index < planet_input_masses.length; index++) {
+        planet_input_masses[index].remove();
+        planet_input_initial_x_pos[index].remove();
+        planet_input_initial_y_pos[index].remove();
+        planet_input_initial_x_vel[index].remove();
+        planet_input_initial_y_vel[index].remove();
+    }
     input_mass_sliders = [];
     input_initial_x_pos = [];
     input_initial_y_pos = [];
     input_initial_x_vel = [];
     input_initial_y_vel = [];
+    planet_input_masses = [];
+    planet_input_initial_x_pos = [];
+    planet_input_initial_y_pos = [];
+    planet_input_initial_x_vel = [];
+    planet_input_initial_y_vel = [];
 }
 
 //sets the number of stars equal to the value of the num_stars_input
@@ -389,6 +411,12 @@ function setNumStars() {
     N = num_stars_input.value();
     num_stars_input.value('');
     createStarInputInterface();
+}
+
+function setNumPlanets() {
+    M = num_planets_input.value();
+    num_planets_input.value('');
+    //createPlanetInputInterface();
 }
 
 function createStarInputInterface() {
@@ -404,16 +432,32 @@ function createStarInputInterface() {
         input_initial_x_vel.push(input_x_vel);
         input_y_vel = createInput();
         input_initial_y_vel.push(input_y_vel);
-
         fill(220);
         input_mass_sliders[index].position(20 + 180 * index, 130);
         input_initial_x_pos[index].position(input_mass_sliders[index].x, 180);
         input_initial_y_pos[index].position(input_mass_sliders[index].x, 230);
         input_initial_x_vel[index].position(input_mass_sliders[index].x, 280);
         input_initial_y_vel[index].position(input_mass_sliders[index].x, 330);
-    }
+    }/*
+    for (var index = 0; index < M; index++) {
+        planet_input_mass = createInput();
+        planet_input_masses.push(planet_input_mass);
+        planet_input_x_pos = createInput();
+        planet_input_initial_x_pos.push(planet_input_x_pos);
+        planet_input_y_pos = createInput();
+        planet_input_initial_y_pos.push(planet_input_y_pos);
+        planet_input_x_vel = createInput();
+        planet_input_initial_x_vel.push(planet_input_x_vel);
+        planet_input_y_vel = createInput();
+        planet_input_initial_y_vel.push(planet_input_y_vel);
+        planet_input_masses[index].position(20 + 180*index, 380);
+        planet_input_initial_x_pos[index].position(planet_input_masses[index].x, 430);
+        planet_input_initial_y_pos[index].position(planet_input_masses[index].x, 480);
+        planet_input_initial_x_vel[index].position(planet_input_masses[index].x, 530);
+        planet_input_initial_y_vel[index].position(planet_input_masses[index].x, 580);
+    }*/
     set_stars = createButton('Generate Star System');
-    set_stars.position(20, 370);
+    set_stars.position(20, 650);
     set_stars.mouseClicked(generateSetStars);
 }
 
@@ -561,7 +605,7 @@ function generateSetStars() {
     textSize(15);
 
     for (var index = 0; index < N; index++) {
-        slider = createSlider(0, 100, masses[index]);
+        slider = createSlider(0, 100, masses[index]*25);
         sliders.push(slider);
         sliders[index].position(20, 20 + 30 * index);
     }
