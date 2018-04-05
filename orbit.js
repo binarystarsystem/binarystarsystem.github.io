@@ -26,6 +26,7 @@ var accelerations = [];
 var stars = [];
 var sliders = [];
 var N = 3;
+var binary_flag_planet = 0;
 
 var colours = ['#E74C3C', '#E7773C', '#F39C12']
 
@@ -85,6 +86,9 @@ var planet_input_initial_x_vel = [];
 var planet_input_y_vel;
 var planet_input_initial_y_vel = [];
 
+var tatooine;
+
+
 //Create initial state of the system. Be very cautious when editing code in this program since global variables
 //are heavily used. This was a necessity since I was unable to pass and modify certain parameters of the Star class.
 function setup() {
@@ -121,7 +125,7 @@ function draw() {
         }
         //Code runs when not paused this is the active portion of the sim
         if (paused == 0) {
-            if (binary_flag == 0) {
+            if (binary_flag == 0 && binary_flag_planet == 0) {
                 dt = initial_dt;
             }
             //The primary physics engine generalized for N bodies
@@ -342,6 +346,7 @@ function reset() {
 //randomize mass and position, in a circle about the origin
 function generateRandomStars() {
     binary_flag = 0;
+    binary_flag_planet = 0;
     for (var index = 0; index < sliders.length; index++) {
         sliders[index].remove();
     }
@@ -463,6 +468,9 @@ function deleteMenu() {
     if (preset_binary != null) {
         preset_binary.remove();
     }
+    if (tatooine != null) {
+        tatooine.remove();
+    }
     deleteInputInterface();
 }
 
@@ -550,6 +558,9 @@ function createStarInputInterface() {
     preset_binary = createButton('Binary Orbit');
     preset_binary.position(180, 630);
     preset_binary.mouseClicked(generateBinaryOrbit);
+    tatooine = createButton('Tatooine');
+    tatooine.position(280, 630);
+    tatooine.mouseClicked(generateBinaryOrbitWithPlanet);
 }
 
 
@@ -660,6 +671,7 @@ Generates stars based on user input in menu
 */
 function generateSetStars() {
     binary_flag = 0;
+    binary_flag_planet = 0;
     for (var index = 0; index < sliders.length; index++) {
         sliders[index].remove();
     }
@@ -720,6 +732,7 @@ Generates a preset binary orbit
 function generateBinaryOrbit() {
     dt = 10e4;
     binary_flag = 1;
+    binary_flag_planet = 0;
     N = 2;
     zeroPlanetArrays();
     zeroStarArrays();
@@ -756,7 +769,55 @@ function generateBinaryOrbit() {
     }
 }
 
+function generateBinaryOrbitWithPlanet() {
+    dt = 1000;
+    binary_flag_planet = 1;
+    binary_flag = 0;
+    N = 2;
+    zeroPlanetArrays();
+    zeroStarArrays();
+    for (var index = 0; index < sliders.length; index++) {
+        sliders[index].remove();
+    }
+    M = 1;
+    if (show_menu == 1) {
+        deleteMenu();
+        generateButtons(windowWidth);
+    }
+    show_menu = 0;
+    paused = 0;
+    textSize(15);
+    masses.push(2);
+    masses.push(2);
+    positions.push(createVector(-2.15, 0, 0));
+    positions.push(createVector(2.15, 0, 0));
+    velocities.push(createVector(0, -140, 0));
+    velocities.push(createVector(0, 140, 0));
+    accelerations.push(createVector(0, 0, 0));
+    accelerations.push(createVector(0, 0, 0));
+    planet_flag = 0;
+    star = new Star(masses[0], colours[Math.floor(Math.random() * colours.length)], planet_flag);
+    stars.push(star);
+    star = new Star(masses[1], colours[Math.floor(Math.random() * colours.length)], planet_flag);
+    stars.push(star);
+    planet_masses.push(0.01);
+    planet_positions.push(createVector(100, 0, 0));
+    planet_velocities.push(createVector(0, 124.7, 0));
+    planet_accelerations.push(createVector(0, 0, 0));
+    planet = new Star(planet_masses[0], 'white', 1);
+    planets.push(planet);
+
+    //Generates the adjustable sliders for inside the physics simulator
+    for (var index = 0; index < N; index++) {
+        slider = createSlider(0, 100, masses[index] * 25);
+        sliders.push(slider);
+        sliders[index].position(20, 20 + 30 * index);
+    }
+}
+
 function colorAlpha(aColor, alpha) {
     var c = color(aColor);
     return color('rgba(' + [red(c), green(c), blue(c), alpha].join(',') + ')');
 }
+
+
