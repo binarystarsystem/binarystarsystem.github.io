@@ -564,8 +564,8 @@ function generateRandomPlanets() {
     }
     for (var index = 0; index < M; index++) {
         parent_star = Math.floor(Math.random() * N);
-        planet_positions.push(createVector(positions[parent_star].x + 25 + 20 * index, positions[parent_star].y, 0));
-        planet_velocities.push(createVector(0, 2, 0));
+        planet_positions.push(createVector(positions[parent_star].x + 50 + 20 * index, positions[parent_star].y, 0));
+        planet_velocities.push(createVector(0, 100, 0));
         planet_accelerations.push(createVector(0, 0, 0));
         planet_flag = 1;
         planet = new Star(planet_masses[index], 'white', planet_flag);
