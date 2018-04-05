@@ -4,7 +4,7 @@ var G = 190809; //units: (solar radii)/(solar mass units)*(km/s)^2
 //solar masses = 2*10^30
 //solar radii = 695600 km
 var AU = 100;
-var singularity_threshold = 15;
+var singularity_threshold = 90000000;
 var planet_singularity_threshold = 10;
 var scale_radius = 25;
 var scale_mass_slider = 25;
@@ -64,10 +64,6 @@ var input_initial_x_vel = [];
 var input_y_vel;
 var input_initial_y_vel = [];
 var set_stars;
-var xp;
-var yp;
-var xv;
-var yv;
 
 //variables for planet input interface in the menu
 var planet_input_mass;
@@ -142,20 +138,22 @@ function draw() {
                         }
                     }
                 }
+                console.log('x ' + accelerations[primary].x);
+                console.log('y ' + accelerations[primary].y);
                 //Handle singularities 
                 //Rails accelerations at a threshold value. This could be edited if needed
                 //We may want to handle singularities in the looping portion to isolate contributions from each star
                 if (accelerations[primary].x > singularity_threshold) {
-                    //accelerations[primary].x = singularity_threshold;
+                    accelerations[primary].x = singularity_threshold;
                 }
                 if (accelerations[primary].x < (-1 * singularity_threshold)) {
-                    //accelerations[primary].x = -1*singularity_threshold;
+                    accelerations[primary].x = -1*singularity_threshold;
                 }
                 if (accelerations[primary].y > singularity_threshold) {
-                    //accelerations[primary].y = singularity_threshold;
+                    accelerations[primary].y = singularity_threshold;
                 }
                 if (accelerations[primary].y < (-1 * singularity_threshold)) {
-                    //accelerations[primary].y = -1*singularity_threshold;
+                    accelerations[primary].y = -1*singularity_threshold;
                 }
                 //Update velocities
                 velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
@@ -277,7 +275,11 @@ function Star(m_, colour_) {
     };
 }
 
-//resets the current simulation with currently incorrect inital conditions
+/*
+Resets the current simulation with the currently randomly generated stars
+Sets them equally spaced around a circle at equal radius from center.
+Should regenerate random stars around them
+*/
 function reset() {
     for (var index2 = 0; index2 < N; index2++) {
         positions[index2] = createVector(cos(2 * PI * index2 / N) * 0.6 * AU, sin(2 * PI * index2 / N) * 0.6 * AU, 0);
@@ -285,6 +287,8 @@ function reset() {
         accelerations[index2] = createVector(0, 0, 0);
         stars[index2].path = [];
     }
+    zeroPlanetArrays();
+    generateRandomPlanets();
 }
 
 //generates N random stars
@@ -329,6 +333,14 @@ function zeroStarArrays() {
     accelerations = [];
     stars = [];
     sliders = [];
+}
+
+function zeroPlanetArrays() {
+    planet_masses = [];
+    planet_positions = [];
+    planet_velocities = [];
+    planet_accelerations = [];
+    planets = [];
 }
 
 function pause() {
@@ -531,7 +543,7 @@ function doPlanetPhysics() {
                 planet_accelerations[primary].y -= G * masses[secondary] / norm2;// / 10e3;
             }
         }
-
+        //planet_singularity_threshold
         //remove singularities
         //singularity threshold to be modified
         //console.log(planet_accelerations[primary]);
@@ -597,47 +609,30 @@ function generateSetStars() {
         sliders[index].remove();
     }
     zeroStarArrays();
-
     for (var index = 0; index < N; index++) {
-        xp = Number(input_initial_x_pos[index].value());
-        yp = Number(input_initial_y_pos[index].value());
-        xv = Number(input_initial_x_vel[index].value());
-        yv = Number(input_initial_y_vel[index].value());
-        //console.log(xp);
         masses.push(input_mass_sliders[index].value() / scale_mass_slider);
-        positions.push(createVector(xp, yp, 0));
-        velocities.push(createVector(xv, yv, 0));
+        positions.push(createVector(Number(input_initial_x_pos[index].value()), Number(input_initial_y_pos[index].value()), 0));
+        velocities.push(createVector(Number(input_initial_x_vel[index].value()), Number(input_initial_y_vel[index].value()), 0));
         accelerations.push(createVector(0, 0, 0));
         star = new Star(masses[index], colours[Math.floor(Math.random() * colours.length)]);
         stars.push(star);
     }
-
-    //removes menu buttons
-  /* if (show_menu == 1) {
+    //remove menu buttons in generateSetPlanets() instead of here
+    /* if (show_menu == 1) {
         deleteMenu();
         generateButtons();
     }
     show_menu = 0;
     paused = 0;
     textSize(15);*/
-
+    //Generates the adjustable sliders for inside the physics simulator
     for (var index = 0; index < N; index++) {
         slider = createSlider(0, 100, masses[index]*25);
         sliders.push(slider);
         sliders[index].position(20, 20 + 30 * index);
-    }
-    
+    }   
     //M = 0;
     generateSetPlanets();
-
-}
-
-function zeroPlanetArrays(){
-    planet_masses = [];
-    planet_positions = [];
-    planet_velocities = [];
-    planet_accelerations = [];
-    planets = [];
 }
 /*
 Generates planets based on user input in menu
@@ -646,19 +641,13 @@ NEED TO FINISH THIS! TOP PRIORITY
 function generateSetPlanets() {  
     zeroPlanetArrays(); 
     for (var index = 0; index < M; index++) {
-        xp = Number(planet_input_initial_x_pos[index].value());
-        yp = Number(planet_input_initial_y_pos[index].value());
-        xv = Number(planet_input_initial_x_vel[index].value());
-        yv = Number(planet_input_initial_y_vel[index].value());
-        console.log(xp);
         planet_masses.push(Number(planet_input_masses[index].value()));
-        planet_positions.push(createVector(xp, yp, 0));
-        planet_velocities.push(createVector(xv, yv, 0));
+        planet_positions.push(createVector(Number(planet_input_initial_x_pos[index].value()), Number(planet_input_initial_y_pos[index].value()), 0));
+        planet_velocities.push(createVector(Number(planet_input_initial_x_vel[index].value()), Number(planet_input_initial_y_vel[index].value()), 0));
         planet_accelerations.push(createVector(0, 0, 0));
         planet = new Star(planet_masses[index], 'blue');
         planets.push(planet);
     }
-
     //removes menu buttons
     if (show_menu == 1) {
         deleteMenu();
