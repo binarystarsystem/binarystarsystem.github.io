@@ -4,8 +4,8 @@ var G = 190809; //units: (solar radii)/(solar mass units)*(km/s)^2
 //solar masses = 2*10^30
 //solar radii = 695600 km
 var AU = 100;
-var singularity_threshold = 90000000;
-var planet_singularity_threshold = 10;
+var singularity_threshold = 1e-3;
+var planet_singularity_threshold = 1e-5;
 var scale_radius = 25;
 var scale_mass_slider = 25;
 var planet_mass = 1;
@@ -40,7 +40,8 @@ var planet;
 var parent_star;
 
 var t = 0;
-var dt = 60e4;
+var dt = 8e3;
+var initial_dt = 8e3;
 var console_flag = 0;
 var pause_button;
 var start_button;
@@ -116,6 +117,9 @@ function draw() {
         }
         //Code runs when not paused this is the active portion of the sim
         if (paused == 0) {
+            if (binary_flag == 0) {
+                dt = initial_dt;
+            }
             //The primary physics engine generalized for N bodies
             var positions_copy = positions;
             var velocities_copy = velocities;
@@ -151,6 +155,8 @@ function draw() {
                 if (accelerations[primary].y < (-1 * singularity_threshold)) {
                     accelerations[primary].y = -1*singularity_threshold;
                 }
+                console.log('x_railed ' + accelerations[primary].x);
+                console.log('y_railed ' + accelerations[primary].y);
                 //Update velocities
                 velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
                 velocities[primary].y = velocities_copy[primary].y + accelerations[primary].y * dt;
@@ -503,7 +509,7 @@ function createStarInputInterface() {
     set_stars.position(20, 630);
     set_stars.mouseClicked(generateSetStars);
     preset_binary = createButton('Binary Orbit');
-    preset_binary.position(110, 630);
+    preset_binary.position(180, 630);
     preset_binary.mouseClicked(generateBinaryOrbit);
 }
 
@@ -678,6 +684,7 @@ function generateSetPlanets() {
 Generates a preset binary orbit
 */
 function generateBinaryOrbit() {
+    dt = 10e4;
     binary_flag = 1;
     N = 2;
     zeroPlanetArrays();
