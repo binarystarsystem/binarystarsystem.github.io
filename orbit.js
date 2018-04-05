@@ -4,7 +4,11 @@ var G = 190809; //units: (solar radii)/(solar mass units)*(km/s)^2
 //solar masses = 2*10^30
 //solar radii = 695600 km
 var AU = 100;
-var singularity_threshold = 15;
+var singularity_threshold = 60;
+var scale_radius = 25;
+var scale_mass_slider = 25;
+var planet_mass = 1;
+var scale_distance = 215 / AU;
 
 //admin variables
 var paused = 0;
@@ -21,7 +25,7 @@ var N = 3;
 var colours = ['red', 'orange', 'yellow', 'white', 'gold', 'DarkOrange']
 
 //hold the planets
-var M = 5;
+var M = 3;
 var planet_masses = [];
 var planet_positions = [];
 var planet_velocities = [];
@@ -32,7 +36,7 @@ var planet;
 var parent_star;
 
 var t = 0;
-var dt = 0.08;
+var dt = 0.01;
 var console_flag = 0;
 var pause_button;
 var start_button;
@@ -80,9 +84,9 @@ function draw() {
         //Still display sliders and stars while paused but not while in the menu
         for (var index = 0; index < N; index++) {
             if (sliders[index].value() != masses[index]) {
-                masses[index] = sliders[index].value();
+                masses[index] = sliders[index].value() / scale_mass_slider;
                 stars[index].m = masses[index];
-                stars[index].r = 5 * sqrt(masses[index]);
+                stars[index].r = scale_radius * sqrt(masses[index]);
                 //reset(); //May choose to reset with slider change but it is nice to change sizes within the same simulation
             }
             noStroke();
@@ -105,25 +109,31 @@ function draw() {
                 accelerations[primary].y = 0;
                 for (var secondary = 0; secondary < masses.length; secondary++) {
                     if (primary != secondary) {
-                        norm2 = pow(sqrt(pow(positions_copy[secondary].x - positions_copy[primary].x, 2) + pow(positions_copy[secondary].y - positions_copy[primary].y, 2)), 2);
+                        norm2 = pow(sqrt(pow(positions_copy[secondary].x - positions_copy[primary].x, 2) + pow(positions_copy[secondary].y - positions_copy[primary].y, 2)*scale_distance), 2);
                         if (positions_copy[secondary].x >= positions_copy[primary].x) {
-                            accelerations[primary].x += G * masses[secondary] / norm2 / 10e3; //We can get rid of these 10e3 I hope but they seem to help a lot
+                            accelerations[primary].x += G * masses[secondary] / norm2;// / 10e3; //We can get rid of these 10e3 I hope but they seem to help a lot
                         } else {
-                            accelerations[primary].x -= G * masses[secondary] / norm2 / 10e3;
+                            accelerations[primary].x -= G * masses[secondary] / norm2;// / 10e3;
                         }
                         if (positions_copy[secondary].y >= positions_copy[primary].y) {
-                            accelerations[primary].y += G * masses[secondary] / norm2 / 10e3;
+                            accelerations[primary].y += G * masses[secondary] / norm2;// / 10e3;
                         } else {
-                            accelerations[primary].y -= G * masses[secondary] / norm2 / 10e3;
+                            accelerations[primary].y -= G * masses[secondary] / norm2;// / 10e3;
                         }
                     }
                 }
                 //Handle singularities 
-               if (accelerations[primary].x > singularity_threshold || accelerations[primary].x < (-1 * singularity_threshold)) {
-                    accelerations[primary].x = 0;
+                if (accelerations[primary].x > singularity_threshold) {
+                    accelerations[primary].x = singularity_threshold;
                 }
-                if (accelerations[primary].y > singularity_threshold || accelerations[primary].y < (-1 * singularity_threshold)) {
-                    accelerations[primary].y = 0;
+                if (accelerations[primary].x < (-1 * singularity_threshold)) {
+                    accelerations[primary].x = -1*singularity_threshold;
+                }
+                if (accelerations[primary].y > singularity_threshold) {
+                    accelerations[primary].y = singularity_threshold;
+                }
+                if (accelerations[primary].y < (-1 * singularity_threshold)) {
+                    accelerations[primary].y = -1*singularity_threshold;
                 }
                 //Update velocities
                 velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
@@ -202,7 +212,7 @@ function display_console() {
 function Star(m_, colour_) {
     this.pos = createVector(0, 0, 0);
     this.m = m_;
-    this.r = 3 * sqrt(m_);
+    this.r = scale_radius * sqrt(m_);
     this.path = [];
     this.colour = colour_;
 
@@ -269,7 +279,7 @@ function generateRandomStars() {
         slider = createSlider(0, 100, Math.random() * 100);
         sliders.push(slider);
         sliders[index].position(20, 20 + 30 * index);
-        masses.push(sliders[index].value());
+        masses.push(sliders[index].value() / scale_mass_slider);
     }
     //creates stars and sets initial conditions
     for (var index = 0; index < N; index++) {
@@ -410,11 +420,11 @@ function generateRandomPlanets() {
     planets = [];
 
     for (var index = 0; index < M; index++) {
-        planet_masses.push(2);
+        planet_masses.push(planet_mass/scale_mass_slider);
     }
     for (var index = 0; index < M; index++) {
         parent_star = Math.floor(Math.random() * N);
-        planet_positions.push(createVector(positions[parent_star].x + 25 + index, positions[parent_star].y, 0));
+        planet_positions.push(createVector(positions[parent_star].x + 25 + 20* index, positions[parent_star].y, 0));
         planet_velocities.push(createVector(0, 2, 0));
         planet_accelerations.push(createVector(0, 0, 0));
         planet = new Star(planet_masses[index], 'white');
@@ -436,41 +446,48 @@ function doPlanetPhysics() {
         planet_accelerations[primary].x = 0;
         planet_accelerations[primary].y = 0;
         for (var secondary = 0; secondary < masses.length; secondary++) {
-            norm2 = pow(sqrt(pow(positions[secondary].x - planet_positions_copy[primary].x, 2) + pow(positions[secondary].y - planet_positions_copy[primary].y, 2)), 2);
+            norm2 = pow(sqrt(pow(positions[secondary].x - planet_positions_copy[primary].x, 2) + pow(positions[secondary].y - planet_positions_copy[primary].y, 2) * scale_distance), 2);
             if (positions[secondary].x >= planet_positions_copy[primary].x) {
-                planet_accelerations[primary].x += G * masses[secondary] / norm2 / 10e3;
+                planet_accelerations[primary].x += G * masses[secondary] / norm2;// / 10e3;
             } else {
-                planet_accelerations[primary].x -= G * masses[secondary] / norm2 / 10e3;
+                planet_accelerations[primary].x -= G * masses[secondary] / norm2;// / 10e3;
             }
             if (positions[secondary].y >= planet_positions_copy[primary].y) {
-                planet_accelerations[primary].y += G * masses[secondary] / norm2 / 10e3;
+                planet_accelerations[primary].y += G * masses[secondary] / norm2;// / 10e3;
             } else {
-                planet_accelerations[primary].y -= G * masses[secondary] / norm2 / 10e3;
+                planet_accelerations[primary].y -= G * masses[secondary] / norm2;// / 10e3;
             }
         }
         //physics of planets on each other
-        for (var secondary = 0; secondary < planet_masses.length; secondary++) {
-            norm2 = pow(sqrt(pow(planet_positions_copy[secondary].x - planet_positions_copy[primary].x, 2) + pow(planet_positions_copy[secondary].y - planet_positions_copy[primary].y, 2)), 2);
+       for (var secondary = 0; secondary < planet_masses.length; secondary++) {
+            norm2 = pow(sqrt(pow(planet_positions_copy[secondary].x - planet_positions_copy[primary].x, 2) + pow(planet_positions_copy[secondary].y - planet_positions_copy[primary].y, 2)* scale_distance), 2);
             if (primary != secondary) {
                 if (planet_positions_copy[secondary].x >= planet_positions_copy[primary].x) {
-                    planet_accelerations[primary].x += G * planet_masses[secondary] / norm2 / 10e3;
+                    planet_accelerations[primary].x += G * planet_masses[secondary] / norm2; /// 10e3;
                 } else {
-                    planet_accelerations[primary].x -= G * planet_masses[secondary] / norm2 / 10e3;
+                    planet_accelerations[primary].x -= G * planet_masses[secondary] / norm2;// / 10e3;
                 }
                 if (planet_positions_copy[secondary].y >= planet_positions_copy[primary].y) {
-                    planet_accelerations[primary].y += G * planet_masses[secondary] / norm2 / 10e3;
+                    planet_accelerations[primary].y += G * planet_masses[secondary] / norm2; /// 10e3;
                 } else {
-                    planet_accelerations[primary].y -= G * planet_masses[secondary] / norm2 / 10e3;
+                    planet_accelerations[primary].y -= G * planet_masses[secondary] / norm2;// / 10e3;
                 }
             }
         }
         //remove singularities
         //singularity threshold to be modified
-        if (planet_accelerations[primary].x > singularity_threshold || planet_accelerations[primary].x < (-1 * singularity_threshold)) {
-            planet_accelerations[primary].x = 0;
+        //console.log(planet_accelerations[primary]);
+        if (planet_accelerations[primary].x > singularity_threshold) {  
+            planet_accelerations[primary].x = singularity_threshold;
         }
-        if (planet_accelerations[primary].y > singularity_threshold || planet_accelerations[primary].y < (-1 * singularity_threshold)) {
-            planet_accelerations[primary].y = 0;
+        if (planet_accelerations[primary].x < (-1 * singularity_threshold)) {
+            planet_accelerations[primary].x = -1*singularity_threshold;
+        }
+        if (planet_accelerations[primary].y > singularity_threshold) {
+            planet_accelerations[primary].y = singularity_threshold;
+        }
+        if (planet_accelerations[primary].y < (-1 * singularity_threshold)) {
+            planet_accelerations[primary].y = -1*singularity_threshold;
         }
         //update velocity of planets
         planet_velocities[primary].x = planet_velocities_copy[primary].x + planet_accelerations[primary].x * dt;
@@ -499,7 +516,7 @@ function generateSetStars() {
         yv = Number(input_initial_y_vel[index].value());
         //input_initial_y_vel[index].value('');
         console.log(xp);
-        masses.push(input_mass_sliders[index].value());
+        masses.push(input_mass_sliders[index].value() / scale_mass_slider);
         positions.push(createVector(xp, yp, 0));
         velocities.push(createVector(xv, yv, 0));
         accelerations.push(createVector(0, 0, 0));
