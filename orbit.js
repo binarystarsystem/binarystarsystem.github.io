@@ -42,7 +42,7 @@ var planet_flag = 0;
 
 var t = 0;
 var dt = 24e3;
-var initial_dt = 8e3;
+var initial_dt = 24e3;
 var console_flag = 0;
 var pause_button;
 var start_button;
