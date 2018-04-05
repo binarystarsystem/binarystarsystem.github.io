@@ -40,7 +40,7 @@ var planet;
 var parent_star;
 
 var t = 0;
-var dt = 6000;
+var dt = 60e3;
 var console_flag = 0;
 var pause_button;
 var start_button;
@@ -154,6 +154,13 @@ function draw() {
                 velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
                 velocities[primary].y = velocities_copy[primary].y + accelerations[primary].y * dt;
             }
+            //if (console_flag % 10 == 0) {
+                //console.log('vX ' + velocities[0].x);
+                //console.log('vY ' + velocities[0].y);
+                //console.log('aX ' + accelerations[0].x);
+                //console.log('aY ' + accelerations[0].y);
+            //}
+            //console_flag += 1;
             //See planet physics function, similar to above physics
            doPlanetPhysics();
         }
