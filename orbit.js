@@ -40,7 +40,7 @@ var planet;
 var parent_star;
 
 var t = 0;
-var dt = 60e3;
+var dt = 10e4;
 var console_flag = 0;
 var pause_button;
 var start_button;
@@ -138,18 +138,20 @@ function draw() {
                 //Handle singularities 
                 //Rails accelerations at a threshold value. This could be edited if needed
                 //We may want to handle singularities in the looping portion to isolate contributions from each star
+                /**SINGULARITY CODE TEMPORARILY DISABLED
                 if (accelerations[primary].x > singularity_threshold) {
-                    //accelerations[primary].x = singularity_threshold;
+                    accelerations[primary].x = singularity_threshold;
                 }
                 if (accelerations[primary].x < (-1 * singularity_threshold)) {
-                    //accelerations[primary].x = -1*singularity_threshold;
+                    accelerations[primary].x = -1*singularity_threshold;
                 }
                 if (accelerations[primary].y > singularity_threshold) {
-                    //accelerations[primary].y = singularity_threshold;
+                    accelerations[primary].y = singularity_threshold;
                 }
                 if (accelerations[primary].y < (-1 * singularity_threshold)) {
-                    //accelerations[primary].y = -1*singularity_threshold;
+                    accelerations[primary].y = -1*singularity_threshold;
                 }
+                **/
                 //Update velocities
                 velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
                 velocities[primary].y = velocities_copy[primary].y + accelerations[primary].y * dt;
@@ -519,22 +521,15 @@ function doPlanetPhysics() {
         planet_accelerations[primary].x = 0;
         planet_accelerations[primary].y = 0;
         for (var secondary = 0; secondary < masses.length; secondary++) {
-            norm2 = pow(sqrt(pow(positions[secondary].x - planet_positions_copy[primary].x, 2) + pow(positions[secondary].y - planet_positions_copy[primary].y, 2) * scale_distance), 2);
-            if (positions[secondary].x >= planet_positions_copy[primary].x) {
-                planet_accelerations[primary].x += G * masses[secondary] / norm2;// / 10e3;
-            } else {
-                planet_accelerations[primary].x -= G * masses[secondary] / norm2;// / 10e3;
-            }
-            if (positions[secondary].y >= planet_positions_copy[primary].y) {
-                planet_accelerations[primary].y += G * masses[secondary] / norm2;// / 10e3;
-            } else {
-                planet_accelerations[primary].y -= G * masses[secondary] / norm2;// / 10e3;
-            }
+          norm3 = pow(sqrt(pow(positions[secondary].x - planet_positions_copy[primary].x, 2) + pow(positions[secondary].y - planet_positions_copy[primary].y, 2))*scale_distance, 3);
+          planet_accelerations[primary].x += G * masses[secondary] * (positions[secondary].x - planet_positions_copy[primary].x)*scale_distance / (norm3*KM_PER_SOLARRADIUS);
+          planet_accelerations[primary].y += G * masses[secondary] * (positions[secondary].y - planet_positions_copy[primary].y)*scale_distance / (norm3*KM_PER_SOLARRADIUS);
         }
 
         //remove singularities
         //singularity threshold to be modified
         //console.log(planet_accelerations[primary]);
+        /**SINGULARITY CODE TEMPORARILY DISABLED
         if (planet_accelerations[primary].x > singularity_threshold) {
             planet_accelerations[primary].x = singularity_threshold;
         }
@@ -547,6 +542,7 @@ function doPlanetPhysics() {
         if (planet_accelerations[primary].y < (-1 * singularity_threshold)) {
             planet_accelerations[primary].y = -1 * singularity_threshold;
         }
+        **/
         //update velocity of planets
         planet_velocities[primary].x = planet_velocities_copy[primary].x + planet_accelerations[primary].x * dt;
         planet_velocities[primary].y = planet_velocities_copy[primary].y + planet_accelerations[primary].y * dt;
@@ -554,23 +550,14 @@ function doPlanetPhysics() {
         planet_accelerations[primary].y = 0;
         //physics of planets on each other
        for (var secondary = 0; secondary < planet_masses.length; secondary++) {
-            norm2 = pow(sqrt(pow(planet_positions_copy[secondary].x - planet_positions_copy[primary].x, 2) + pow(planet_positions_copy[secondary].y - planet_positions_copy[primary].y, 2)* scale_distance), 2);
-            if (primary != secondary) {
-                if (planet_positions_copy[secondary].x >= planet_positions_copy[primary].x) {
-                    planet_accelerations[primary].x += G * planet_masses[secondary] / norm2; /// 10e3;
-                } else {
-                    planet_accelerations[primary].x -= G * planet_masses[secondary] / norm2;// / 10e3;
-                }
-                if (planet_positions_copy[secondary].y >= planet_positions_copy[primary].y) {
-                    planet_accelerations[primary].y += G * planet_masses[secondary] / norm2; /// 10e3;
-                } else {
-                    planet_accelerations[primary].y -= G * planet_masses[secondary] / norm2;// / 10e3;
-                }
-            }
+          norm3 = pow(sqrt(pow(planet_positions_copy[secondary].x - planet_positions_copy[primary].x, 2) + pow(planet_positions_copy[secondary].y - planet_positions_copy[primary].y, 2))*scale_distance, 3);
+          planet_accelerations[primary].x += G * planet_masses[secondary] * (planet_positions_copy[secondary].x - planet_positions_copy[primary].x)*scale_distance / (norm3*KM_PER_SOLARRADIUS);
+          planet_accelerations[primary].y += G * planet_masses[secondary] * (planet_positions_copy[secondary].y - planet_positions_copy[primary].y)*scale_distance / (norm3*KM_PER_SOLARRADIUS);
         }
         //remove singularities
         //singularity threshold to be modified
         //console.log(planet_accelerations[primary]);
+        /**SINGULARITY CODE TEMPORARILY DISABLED
         if (planet_accelerations[primary].x > planet_singularity_threshold) {  
             planet_accelerations[primary].x = planet_singularity_threshold;
         }
@@ -583,6 +570,7 @@ function doPlanetPhysics() {
         if (planet_accelerations[primary].y < (-1 * planet_singularity_threshold)) {
             planet_accelerations[primary].y = -1 * planet_singularity_threshold;
         }
+        **/
         //update velocity of planets
         planet_velocities[primary].x += planet_accelerations[primary].x * dt;
         planet_velocities[primary].y += planet_accelerations[primary].y * dt;
