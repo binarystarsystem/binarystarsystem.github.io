@@ -5,12 +5,12 @@ var G = 190809; //units: (solar radii)/(solar mass units)*(km/s)^2
 //solar radii = 695600 km
 var AU = 100;
 var singularity_threshold = 1e-3;
-var planet_singularity_threshold = 1e-4;
+var planet_singularity_threshold = 1e-3;
 var scale_radius = 25;
 var scale_mass_slider = 25;
 var planet_mass = 1;
 var SOLARRADIUS_PER_AU = 215;
-var scale_distance = SOLARRADIUS_PER_AU/AU;
+var scale_distance = SOLARRADIUS_PER_AU / AU;
 var KM_PER_AU = 1.5e8;
 var KM_PER_SOLARRADIUS = 6.956e5;
 
@@ -40,6 +40,7 @@ var planets = [];
 var planet_colours = [];
 var planet;
 var parent_star;
+var planet_flag = 0;
 
 var t = 0;
 var dt = 24e3;
@@ -136,9 +137,9 @@ function draw() {
                 accelerations[primary].y = 0;
                 for (var secondary = 0; secondary < masses.length; secondary++) {
                     if (primary != secondary) {
-                        norm3 = pow(sqrt(pow(positions_copy[secondary].x - positions_copy[primary].x, 2) + pow(positions_copy[secondary].y - positions_copy[primary].y, 2))*scale_distance, 3);
-                        accelerations[primary].x += G * masses[secondary] *(positions_copy[secondary].x - positions_copy[primary].x)*scale_distance / (norm3*KM_PER_SOLARRADIUS);
-                        accelerations[primary].y += G * masses[secondary] *(positions_copy[secondary].y - positions_copy[primary].y)*scale_distance / (norm3*KM_PER_SOLARRADIUS);
+                        norm3 = pow(sqrt(pow(positions_copy[secondary].x - positions_copy[primary].x, 2) + pow(positions_copy[secondary].y - positions_copy[primary].y, 2)) * scale_distance, 3);
+                        accelerations[primary].x += G * masses[secondary] * (positions_copy[secondary].x - positions_copy[primary].x) * scale_distance / (norm3 * KM_PER_SOLARRADIUS);
+                        accelerations[primary].y += G * masses[secondary] * (positions_copy[secondary].y - positions_copy[primary].y) * scale_distance / (norm3 * KM_PER_SOLARRADIUS);
                     }
                 }
                 //console.log('x ' + accelerations[primary].x);
@@ -150,29 +151,29 @@ function draw() {
                     accelerations[primary].x = singularity_threshold;
                 }
                 if (accelerations[primary].x < (-1 * singularity_threshold)) {
-                    accelerations[primary].x = -1*singularity_threshold;
+                    accelerations[primary].x = -1 * singularity_threshold;
                 }
                 if (accelerations[primary].y > singularity_threshold) {
                     accelerations[primary].y = singularity_threshold;
                 }
                 if (accelerations[primary].y < (-1 * singularity_threshold)) {
-                    accelerations[primary].y = -1*singularity_threshold;
+                    accelerations[primary].y = -1 * singularity_threshold;
                 }
-               // console.log('x_railed ' + accelerations[primary].x);
-               // console.log('y_railed ' + accelerations[primary].y);
+                // console.log('x_railed ' + accelerations[primary].x);
+                // console.log('y_railed ' + accelerations[primary].y);
                 //Update velocities
                 velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
                 velocities[primary].y = velocities_copy[primary].y + accelerations[primary].y * dt;
             }
             //if (console_flag % 10 == 0) {
-                //console.log('vX ' + velocities[0].x);
-                //console.log('vY ' + velocities[0].y);
-                //console.log('aX ' + accelerations[0].x);
-                //console.log('aY ' + accelerations[0].y);
+            //console.log('vX ' + velocities[0].x);
+            //console.log('vY ' + velocities[0].y);
+            //console.log('aX ' + accelerations[0].x);
+            //console.log('aY ' + accelerations[0].y);
             //}
             //console_flag += 1;
             //See planet physics function, similar to above physics
-           doPlanetPhysics();
+            doPlanetPhysics();
         }
         var reset_flag = 0;
         //update the positions and draw stars
@@ -186,9 +187,10 @@ function draw() {
             }
         }
         //reset the simulation if all stars are off the screen
-        if (reset_flag == N) {
+        if (reset_flag == N && N != 0) {
             reset();
         }
+
         //draw planets
         for (var index = 0; index < M; index++) {
             planets[index].update_position(planet_positions[index]);
@@ -199,7 +201,7 @@ function draw() {
         //update time
         t += dt;
     }
-    //menu
+        //menu
     else {
         //delete everything
         for (var index = 0; index < sliders.length; index++) {
@@ -230,7 +232,7 @@ function draw() {
             text("Initial X Position", planet_input_masses[index].x, 420);
             text("Initial Y Position", planet_input_masses[index].x, 470);
             text("Initial X Velocity", planet_input_masses[index].x, 520);
-            text("Initial Y Velocity", planet_input_masses[index].x, 570);       
+            text("Initial Y Velocity", planet_input_masses[index].x, 570);
         }
     }
     //for troubleshooting
@@ -248,7 +250,7 @@ They also keep the colour and mass consistent, since these terms determine how t
 The position update function should be called to change the position that the star is drawn at, though
 this does not effect the actual physics of the star
 */
-function Star(m_, colour_) {
+function Star(m_, colour_, planet_flag_) {
     this.pos = createVector(0, 0, 0);
     this.m = m_;
     this.r = scale_radius * sqrt(m_);
@@ -258,29 +260,37 @@ function Star(m_, colour_) {
     this.draw = function () {
         //draw the star
         //220 for white
-        noStroke();
-        fill(this.colour);
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 20, this.r - 20);
-        fill(colorAlpha(this.colour, 0.95));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 18, this.r - 18);
-        fill(colorAlpha(this.colour, 0.90));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 16, this.r - 16);
-        fill(colorAlpha(this.colour, 0.80));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 14, this.r - 14);
-        fill(colorAlpha(this.colour, 0.70));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 12, this.r - 12);
-        fill(colorAlpha(this.colour, 0.60));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 10, this.r - 10);
-        fill(colorAlpha(this.colour, 0.50));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 8, this.r - 8);
-        fill(colorAlpha(this.colour, 0.40));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 6, this.r - 6);
-        fill(colorAlpha(this.colour, 0.30));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 4, this.r - 4);
-        fill(colorAlpha(this.colour, 0.20));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 2, this.r - 2);
-        fill(colorAlpha(this.colour, 0.10));
-        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r, this.r);
+
+        if (planet_flag_ == 1) {
+            noStroke();
+            fill(this.colour);
+            ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r, this.r);
+        }
+        else {
+            noStroke();
+            fill(this.colour);
+            ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 20, this.r - 20);
+            fill(colorAlpha(this.colour, 0.95));
+            ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 18, this.r - 18);
+            fill(colorAlpha(this.colour, 0.90));
+            ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 16, this.r - 16);
+            fill(colorAlpha(this.colour, 0.80));
+            ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 14, this.r - 14);
+            fill(colorAlpha(this.colour, 0.70));
+            ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 12, this.r - 12);
+            fill(colorAlpha(this.colour, 0.60));
+            ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 10, this.r - 10);
+            fill(colorAlpha(this.colour, 0.50));
+            ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 8, this.r - 8);
+            fill(colorAlpha(this.colour, 0.40));
+            ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 6, this.r - 6);
+            fill(colorAlpha(this.colour, 0.30));
+            ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 4, this.r - 4);
+            fill(colorAlpha(this.colour, 0.20));
+            ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 2, this.r - 2);
+            fill(colorAlpha(this.colour, 0.10));
+            ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r, this.r);
+        }
     };
     //draws a tail behind the star
     this.draw_path = function () {
@@ -337,7 +347,7 @@ function generateRandomStars() {
     }
     zeroStarArrays();
     //removes menu buttons
-    
+
     if (show_menu == 1) {
         deleteMenu();
         generateButtons(windowWidth);
@@ -359,7 +369,8 @@ function generateRandomStars() {
         //velocities.push(createVector(cos(2 * PI * index / N + PI / 4) * 3, sin(2 * PI * index / N + PI / 4) * -3, 0));
         velocities.push(createVector(0, 0, 0));
         accelerations.push(createVector(0, 0, 0));
-        star = new Star(masses[index], colours[Math.floor(Math.random() * colours.length)]);
+        planet_flag = 0;
+        star = new Star(masses[index], colours[Math.floor(Math.random() * colours.length)], planet_flag);
         stars.push(star);
     }
 }
@@ -452,7 +463,7 @@ function deleteMenu() {
     if (preset_binary != null) {
         preset_binary.remove();
     }
-    deleteInputInterface();   
+    deleteInputInterface();
 }
 
 function deleteInputInterface() {
@@ -549,14 +560,15 @@ function createStarInputInterface() {
 function generateRandomPlanets() {
     zeroPlanetArrays();
     for (var index = 0; index < M; index++) {
-        planet_masses.push(planet_mass/scale_mass_slider);
+        planet_masses.push(planet_mass / scale_mass_slider);
     }
     for (var index = 0; index < M; index++) {
         parent_star = Math.floor(Math.random() * N);
-        planet_positions.push(createVector(positions[parent_star].x + 25 + 20* index, positions[parent_star].y, 0));
+        planet_positions.push(createVector(positions[parent_star].x + 25 + 20 * index, positions[parent_star].y, 0));
         planet_velocities.push(createVector(0, 2, 0));
         planet_accelerations.push(createVector(0, 0, 0));
-        planet = new Star(planet_masses[index], 'white');
+        planet_flag = 1;
+        planet = new Star(planet_masses[index], 'white', planet_flag);
         planets.push(planet);
         //console.log(planet_positions[index].x);
     }
@@ -570,28 +582,27 @@ function doPlanetPhysics() {
 
     //physics of stars on planets
     for (var primary = 0; primary < planet_masses.length; primary++) {
-        console.log(planet_masses[primary]);
-        planet_positions[primary].x = planet_positions_copy[primary].x + planet_velocities_copy[primary].x * dt;
-        planet_positions[primary].y = planet_positions_copy[primary].y + planet_velocities_copy[primary].y * dt;
+        if (primary == 0) {
+            console.log('X ' + planet_positions[primary].x);
+             console.log('Y ' + planet_positions[primary].y);
+        }
+        planet_positions[primary].x = planet_positions_copy[primary].x + planet_velocities_copy[primary].x / KM_PER_AU * AU * dt;
+        planet_positions[primary].y = planet_positions_copy[primary].y + planet_velocities_copy[primary].y / KM_PER_AU * AU * dt;
         planet_accelerations[primary].x = 0;
         planet_accelerations[primary].y = 0;
         for (var secondary = 0; secondary < masses.length; secondary++) {
-            norm2 = pow(sqrt(pow(positions[secondary].x - planet_positions_copy[primary].x, 2) + pow(positions[secondary].y - planet_positions_copy[primary].y, 2) * scale_distance), 2);
-            if (positions[secondary].x >= planet_positions_copy[primary].x) {
-                planet_accelerations[primary].x += G * masses[secondary] / norm2;// / 10e3;
-            } else {
-                planet_accelerations[primary].x -= G * masses[secondary] / norm2;// / 10e3;
-            }
-            if (positions[secondary].y >= planet_positions_copy[primary].y) {
-                planet_accelerations[primary].y += G * masses[secondary] / norm2;// / 10e3;
-            } else {
-                planet_accelerations[primary].y -= G * masses[secondary] / norm2;// / 10e3;
-            }
+            norm3 = pow(sqrt(pow(positions[secondary].x - planet_positions_copy[primary].x, 2) + pow(positions[secondary].y - planet_positions_copy[primary].y, 2) * scale_distance), 3);
+            planet_accelerations[primary].x += G * masses[secondary] * (positions[secondary].x - planet_positions_copy[primary].x)*scale_distance / (norm3 * KM_PER_SOLARRADIUS);// / 10e3;
+            planet_accelerations[primary].y += G * masses[secondary] * (positions[secondary].y - planet_positions_copy[primary].y)*scale_distance / (norm3 * KM_PER_SOLARRADIUS);// / 10e3;
         }
         //planet_singularity_threshold
         //remove singularities
         //singularity threshold to be modified
-        //console.log(planet_accelerations[primary].x);
+        if (primary == 0) {
+
+        console.log(planet_accelerations[primary].x);
+        console.log(planet_accelerations[primary].y);
+        }
         if (planet_accelerations[primary].x > planet_singularity_threshold) {
             planet_accelerations[primary].x = planet_singularity_threshold;
         }
@@ -604,44 +615,48 @@ function doPlanetPhysics() {
         if (planet_accelerations[primary].y < (-1 * planet_singularity_threshold)) {
             planet_accelerations[primary].y = -1 * planet_singularity_threshold;
         }
+        if (primary == 0) {
+            console.log('Railed X ' + planet_accelerations[primary].x);
+            console.log('Railed Y ' + planet_accelerations[primary].y);
+        }
         //console.log('railed ' + planet_accelerations[primary].x);
         //update velocity of planets
-        planet_velocities[primary].x = planet_velocities_copy[primary].x + planet_accelerations[primary].x * dt;
-        planet_velocities[primary].y = planet_velocities_copy[primary].y + planet_accelerations[primary].y * dt;
-        planet_accelerations[primary].x = 0;
-        planet_accelerations[primary].y = 0;
-        //physics of planets on each other
-       for (var secondary = 0; secondary < planet_masses.length; secondary++) {
-            norm2 = pow(sqrt(pow(planet_positions_copy[secondary].x - planet_positions_copy[primary].x, 2) + pow(planet_positions_copy[secondary].y - planet_positions_copy[primary].y, 2)* scale_distance), 2);
-            if (primary != secondary) {
-                if (planet_positions_copy[secondary].x >= planet_positions_copy[primary].x) {
-                    planet_accelerations[primary].x += G * planet_masses[secondary] / norm2; /// 10e3;
-                } else {
-                    planet_accelerations[primary].x -= G * planet_masses[secondary] / norm2;// / 10e3;
-                }
-                if (planet_positions_copy[secondary].y >= planet_positions_copy[primary].y) {
-                    planet_accelerations[primary].y += G * planet_masses[secondary] / norm2; /// 10e3;
-                } else {
-                    planet_accelerations[primary].y -= G * planet_masses[secondary] / norm2;// / 10e3;
-                }
-            }
-        }
-        //remove singularities
-        //singularity threshold to be modified
-        //console.log(planet_accelerations[primary]);
-        if (planet_accelerations[primary].x > planet_singularity_threshold) {  
-            planet_accelerations[primary].x = planet_singularity_threshold;
-        }
-        if (planet_accelerations[primary].x < (-1 * planet_singularity_threshold)) {
-            planet_accelerations[primary].x = -1 * planet_singularity_threshold;
-        }
-        if (planet_accelerations[primary].y > planet_singularity_threshold) {
-            planet_accelerations[primary].y = planet_singularity_threshold;
-        }
-        if (planet_accelerations[primary].y < (-1 * planet_singularity_threshold)) {
-            planet_accelerations[primary].y = -1 * planet_singularity_threshold;
-        }
-        //update velocity of planets
+        /*  planet_velocities[primary].x = planet_velocities_copy[primary].x + planet_accelerations[primary].x * dt;
+          planet_velocities[primary].y = planet_velocities_copy[primary].y + planet_accelerations[primary].y * dt;
+          planet_accelerations[primary].x = 0;
+          planet_accelerations[primary].y = 0;
+          //physics of planets on each other
+         for (var secondary = 0; secondary < planet_masses.length; secondary++) {
+              norm2 = pow(sqrt(pow(planet_positions_copy[secondary].x - planet_positions_copy[primary].x, 2) + pow(planet_positions_copy[secondary].y - planet_positions_copy[primary].y, 3)* scale_distance), 2);
+              if (primary != secondary) {
+                  if (planet_positions_copy[secondary].x >= planet_positions_copy[primary].x) {
+                      planet_accelerations[primary].x += G * planet_masses[secondary] / norm2; /// 10e3;
+                  } else {
+                      planet_accelerations[primary].x -= G * planet_masses[secondary] / norm2;// / 10e3;
+                  }
+                  if (planet_positions_copy[secondary].y >= planet_positions_copy[primary].y) {
+                      planet_accelerations[primary].y += G * planet_masses[secondary] / norm2; /// 10e3;
+                  } else {
+                      planet_accelerations[primary].y -= G * planet_masses[secondary] / norm2;// / 10e3;
+                  }
+              }
+          }
+          //remove singularities
+          //singularity threshold to be modified
+          //console.log(planet_accelerations[primary]);
+          if (planet_accelerations[primary].x > planet_singularity_threshold) {  
+              planet_accelerations[primary].x = planet_singularity_threshold;
+          }
+          if (planet_accelerations[primary].x < (-1 * planet_singularity_threshold)) {
+              planet_accelerations[primary].x = -1 * planet_singularity_threshold;
+          }
+          if (planet_accelerations[primary].y > planet_singularity_threshold) {
+              planet_accelerations[primary].y = planet_singularity_threshold;
+          }
+          if (planet_accelerations[primary].y < (-1 * planet_singularity_threshold)) {
+              planet_accelerations[primary].y = -1 * planet_singularity_threshold;
+          }
+          //update velocity of planets*/
         planet_velocities[primary].x += planet_accelerations[primary].x * dt;
         planet_velocities[primary].y += planet_accelerations[primary].y * dt;
     }
@@ -661,7 +676,8 @@ function generateSetStars() {
         positions.push(createVector(Number(input_initial_x_pos[index].value()), Number(input_initial_y_pos[index].value()), 0));
         velocities.push(createVector(Number(input_initial_x_vel[index].value()), Number(input_initial_y_vel[index].value()), 0));
         accelerations.push(createVector(0, 0, 0));
-        star = new Star(masses[index], colours[Math.floor(Math.random() * colours.length)]);
+        planet_flag = 0;
+        star = new Star(masses[index], colours[Math.floor(Math.random() * colours.length)], planet_flag);
         stars.push(star);
     }
     //remove menu buttons in generateSetPlanets() instead of here
@@ -674,24 +690,25 @@ function generateSetStars() {
     textSize(15);*/
     //Generates the adjustable sliders for inside the physics simulator
     for (var index = 0; index < N; index++) {
-        slider = createSlider(0, 100, masses[index]*25);
+        slider = createSlider(0, 100, masses[index] * 25);
         sliders.push(slider);
         sliders[index].position(20, 20 + 30 * index);
-    }   
+    }
     generateSetPlanets();
 }
 /*
 Generates planets based on user input in menu
 NEED TO FINISH THIS! TOP PRIORITY
 */
-function generateSetPlanets() {  
-    zeroPlanetArrays(); 
+function generateSetPlanets() {
+    zeroPlanetArrays();
     for (var index = 0; index < M; index++) {
         planet_masses.push(Number(planet_input_masses[index].value()));
         planet_positions.push(createVector(Number(planet_input_initial_x_pos[index].value()), Number(planet_input_initial_y_pos[index].value()), 0));
         planet_velocities.push(createVector(Number(planet_input_initial_x_vel[index].value()), Number(planet_input_initial_y_vel[index].value()), 0));
         planet_accelerations.push(createVector(0, 0, 0));
-        planet = new Star(planet_masses[index], 'white');
+        planet_flag = 1;
+        planet = new Star(planet_masses[index], 'white', planet_flag);
         planets.push(planet);
     }
     //removes menu buttons
@@ -726,15 +743,16 @@ function generateBinaryOrbit() {
     textSize(15);
     masses.push(4);
     masses.push(4);
-    positions.push(createVector(-200,0,0));
+    positions.push(createVector(-200, 0, 0));
     positions.push(createVector(200, 0, 0));
     velocities.push(createVector(0, -21, 0));
     velocities.push(createVector(0, 21, 0));
     accelerations.push(createVector(0, 0, 0));
     accelerations.push(createVector(0, 0, 0));
-    star = new Star(masses[0], colours[Math.floor(Math.random() * colours.length)]);
+    planet_flag = 0;
+    star = new Star(masses[0], colours[Math.floor(Math.random() * colours.length)], planet_flag);
     stars.push(star);
-    star = new Star(masses[1], colours[Math.floor(Math.random() * colours.length)]);
+    star = new Star(masses[1], colours[Math.floor(Math.random() * colours.length)], planet_flag);
     stars.push(star);
 
     //Generates the adjustable sliders for inside the physics simulator
@@ -746,6 +764,6 @@ function generateBinaryOrbit() {
 }
 
 function colorAlpha(aColor, alpha) {
-  var c = color(aColor);
-  return color('rgba(' +  [red(c), green(c), blue(c), alpha].join(',') + ')');
+    var c = color(aColor);
+    return color('rgba(' + [red(c), green(c), blue(c), alpha].join(',') + ')');
 }
