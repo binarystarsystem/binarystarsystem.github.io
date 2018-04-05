@@ -26,7 +26,7 @@ var accelerations = [];
 var stars = [];
 var sliders = [];
 var N = 3;
-var colours = ['red', 'orange', 'yellow', 'white', 'gold', 'DarkOrange']
+var colours = ['#E74C3C', '#E7773C', '#F39C12']
 
 //hold the planets
 var M = 3;
@@ -87,7 +87,7 @@ var planet_input_initial_y_vel = [];
 function setup() {
     createCanvas(windowWidth, windowHeight);
     //start with a random star simulation of N stars and M planets
-    generateButtons();
+    generateButtons(windowWidth);
     generateRandomStars();
     generateRandomPlanets();
 }
@@ -98,7 +98,8 @@ Flags will determine whether the simulation is in pause mode, running mode or me
 This portion is also what generates all text and non-input elements
 */
 function draw() {
-    background(0);
+    textFont('Trebuchet MS');
+    background('#181818');
     //If menu is not running run the simulation
     if (show_menu == 0) {
         menu_created = 0;
@@ -257,6 +258,26 @@ function Star(m_, colour_) {
         //220 for white
         noStroke();
         fill(this.colour);
+        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 20, this.r - 20);
+        fill(colorAlpha(this.colour, 0.95));
+        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 18, this.r - 18);
+        fill(colorAlpha(this.colour, 0.90));
+        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 16, this.r - 16);
+        fill(colorAlpha(this.colour, 0.80));
+        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 14, this.r - 14);
+        fill(colorAlpha(this.colour, 0.70));
+        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 12, this.r - 12);
+        fill(colorAlpha(this.colour, 0.60));
+        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 10, this.r - 10);
+        fill(colorAlpha(this.colour, 0.50));
+        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 8, this.r - 8);
+        fill(colorAlpha(this.colour, 0.40));
+        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 6, this.r - 6);
+        fill(colorAlpha(this.colour, 0.30));
+        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 4, this.r - 4);
+        fill(colorAlpha(this.colour, 0.20));
+        ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r - 2, this.r - 2);
+        fill(colorAlpha(this.colour, 0.10));
         ellipse(width / 2 + this.pos.x, height / 2. + this.pos.y, this.r, this.r);
     };
     //draws a tail behind the star
@@ -270,7 +291,7 @@ function Star(m_, colour_) {
         for (var ii = 0; ii < this.path.length - 1; ii++) {
             //change the color of the line
             var shade = map(ii, 0, this.path.length, 50, 220);
-            stroke(shade);
+            stroke(colorAlpha(this.colour, 0.10));
             //draw the line segment
             //console.log(this.path[ii].x);
             line(this.path[ii].x + width / 2, this.path[ii].y + height / 2., this.path[ii + 1].x + width / 2, this.path[ii + 1].y + height / 2);
@@ -317,7 +338,7 @@ function generateRandomStars() {
     
     if (show_menu == 1) {
         deleteMenu();
-        generateButtons();
+        generateButtons(windowWidth);
     }
     show_menu = 0;
     paused = 0;
@@ -370,17 +391,22 @@ function toggleMenu() {
     show_menu = 1;
 }
 
-function generateButtons() {
+function generateButtons(windowWidth) {
     //creates a pause button
     pause_button = createButton('Pause');
     start_button = createButton('Start');
     menu_button = createButton('Menu');
     randomize_button = createButton('Random');
 
-    pause_button.position(20, 20 + 30 * N);
-    start_button.position(80, 20 + 30 * N);
-    menu_button.position(130, 20 + 30 * N);
-    randomize_button.position(185, 20 + 30 * N);
+    pause_button.style('font-family', 'Trebuchet MS');
+    start_button.style('font-family', 'Trebuchet MS');
+    menu_button.style('font-family', 'Trebuchet MS');
+    randomize_button.style('font-family', 'Trebuchet MS');
+
+    pause_button.position(windowWidth - 251, 20, 20 + 30 * N);
+    start_button.position(windowWidth - 192, 20, 20 + 30 * N);
+    menu_button.position(windowWidth - 138, 20, 20 + 30 * N);
+    randomize_button.position(windowWidth - 84, 20, 20 + 30 * N);
 
     start_button.mouseClicked(unpause);
     pause_button.mouseClicked(pause);
@@ -667,13 +693,13 @@ function generateSetPlanets() {
         planet_positions.push(createVector(Number(planet_input_initial_x_pos[index].value()), Number(planet_input_initial_y_pos[index].value()), 0));
         planet_velocities.push(createVector(Number(planet_input_initial_x_vel[index].value()), Number(planet_input_initial_y_vel[index].value()), 0));
         planet_accelerations.push(createVector(0, 0, 0));
-        planet = new Star(planet_masses[index], 'blue');
+        planet = new Star(planet_masses[index], 'white');
         planets.push(planet);
     }
     //removes menu buttons
     if (show_menu == 1) {
         deleteMenu();
-        generateButtons();
+        generateButtons(windowWidth);
     }
     show_menu = 0;
     paused = 0;
@@ -695,7 +721,7 @@ function generateBinaryOrbit() {
     M = 0;
     if (show_menu == 1) {
         deleteMenu();
-        generateButtons();
+        generateButtons(windowWidth);
     }
     show_menu = 0;
     paused = 0;
@@ -719,4 +745,9 @@ function generateBinaryOrbit() {
         sliders.push(slider);
         sliders[index].position(20, 20 + 30 * index);
     }
+}
+
+function colorAlpha(aColor, alpha) {
+  var c = color(aColor);
+  return color('rgba(' +  [red(c), green(c), blue(c), alpha].join(',') + ')');
 }
