@@ -1,8 +1,8 @@
 
 //constants, to be scaled
-+var G = 190809; //units: (solar radii)/(solar mass units)*(km/s)^2
-+//solar masses = 2*10^30
-+//solar radii = 695600 km
+var G = 190809; //units: (solar radii)/(solar mass units)*(km/s)^2
+//solar masses = 2*10^30
+//solar radii = 695600 km
 var AU = 100;
 var singularity_threshold = 15;
 
