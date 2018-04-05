@@ -118,8 +118,8 @@ function draw() {
                         }
                     }
                 }
-                //Handle singularities
-                if (accelerations[primary].x > singularity_threshold || accelerations[primary].x < (-1 * singularity_threshold)) {
+                //Handle singularities 
+               if (accelerations[primary].x > singularity_threshold || accelerations[primary].x < (-1 * singularity_threshold)) {
                     accelerations[primary].x = 0;
                 }
                 if (accelerations[primary].y > singularity_threshold || accelerations[primary].y < (-1 * singularity_threshold)) {
@@ -129,7 +129,7 @@ function draw() {
                 velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
                 velocities[primary].y = velocities_copy[primary].y + accelerations[primary].y * dt;
             }
-            doPlanetPhysics();
+           doPlanetPhysics();
         }
 
         var reset_flag = 0;
@@ -157,7 +157,7 @@ function draw() {
         t += dt;
     }
 
-        //menu
+    //menu
     else {
 
         //delete everything
@@ -415,7 +415,7 @@ function generateRandomPlanets() {
     for (var index = 0; index < M; index++) {
         parent_star = Math.floor(Math.random() * N);
         planet_positions.push(createVector(positions[parent_star].x + 25 + index, positions[parent_star].y, 0));
-        planet_velocities.push(createVector(0, 4, 0));
+        planet_velocities.push(createVector(0, 2, 0));
         planet_accelerations.push(createVector(0, 0, 0));
         planet = new Star(planet_masses[index], 'white');
         planets.push(planet);
@@ -423,14 +423,13 @@ function generateRandomPlanets() {
     }
 }
 
-
-//planet masses currently do no effect each other
 //stars should not be effected by gravity from planets
 function doPlanetPhysics() {
     var planet_positions_copy = planet_positions;
     var planet_velocities_copy = planet_velocities;
     var planet_acceleration_copy = planet_accelerations;
 
+    //physics of stars on planets
     for (var primary = 0; primary < planet_masses.length; primary++) {
         planet_positions[primary].x = planet_positions_copy[primary].x + planet_velocities_copy[primary].x * dt;
         planet_positions[primary].y = planet_positions_copy[primary].y + planet_velocities_copy[primary].y * dt;
@@ -447,6 +446,22 @@ function doPlanetPhysics() {
                 planet_accelerations[primary].y += G * masses[secondary] / norm2 / 10e3;
             } else {
                 planet_accelerations[primary].y -= G * masses[secondary] / norm2 / 10e3;
+            }
+        }
+        //physics of planets on each other
+        for (var secondary = 0; secondary < planet_masses.length; secondary++) {
+            norm2 = pow(sqrt(pow(planet_positions_copy[secondary].x - planet_positions_copy[primary].x, 2) + pow(planet_positions_copy[secondary].y - planet_positions_copy[primary].y, 2)), 2);
+            if (primary != secondary) {
+                if (planet_positions_copy[secondary].x >= planet_positions_copy[primary].x) {
+                    planet_accelerations[primary].x += G * planet_masses[secondary] / norm2 / 10e3;
+                } else {
+                    planet_accelerations[primary].x -= G * planet_masses[secondary] / norm2 / 10e3;
+                }
+                if (planet_positions_copy[secondary].y >= planet_positions_copy[primary].y) {
+                    planet_accelerations[primary].y += G * planet_masses[secondary] / norm2 / 10e3;
+                } else {
+                    planet_accelerations[primary].y -= G * planet_masses[secondary] / norm2 / 10e3;
+                }
             }
         }
         //remove singularities
@@ -513,5 +528,5 @@ function generateSetStars() {
     planet_velocities = [];
     planet_accelerations = [];
     planets = [];
-    
+
 }
