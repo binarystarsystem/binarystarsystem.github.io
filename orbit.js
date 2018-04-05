@@ -10,6 +10,8 @@ var scale_radius = 25;
 var scale_mass_slider = 25;
 var planet_mass = 1;
 var scale_distance = 215 / AU;
+var KM_PER_AU = 1.5e8;
+var KM_PER_SOLARRADIUS = 6.956e5;
 
 //admin variables
 var paused = 0;
@@ -37,7 +39,7 @@ var planet;
 var parent_star;
 
 var t = 0;
-var dt = 0.008;
+var dt = 60e-4;
 var console_flag = 0;
 var pause_button;
 var start_button;
@@ -118,37 +120,37 @@ function draw() {
             //Physics! Still time stepped but fairly effectively. Need to work on singularities more
             for (var primary = 0; primary < masses.length; primary++) {
                 //Update positions
-                positions[primary].x = positions_copy[primary].x + velocities_copy[primary].x * dt;
-                positions[primary].y = positions_copy[primary].y + velocities_copy[primary].y * dt;
+                positions[primary].x = positions_copy[primary].x + (velocities_copy[primary].x/(KM_PER_AU/AU)) * dt;
+                positions[primary].y = positions_copy[primary].y + (velocities_copy[primary].y/(KM_PER_AU/AU)) * dt;
                 accelerations[primary].x = 0;
                 accelerations[primary].y = 0;
                 for (var secondary = 0; secondary < masses.length; secondary++) {
                     if (primary != secondary) {
-                        norm2 = pow(sqrt(pow(positions_copy[secondary].x - positions_copy[primary].x, 2) + pow(positions_copy[secondary].y - positions_copy[primary].y, 2)*scale_distance), 2);
+                        norm2 = pow(sqrt(pow(positions_copy[secondary].x - positions_copy[primary].x, 2) + pow(positions_copy[secondary].y - positions_copy[primary].y, 2))*scale_distance, 2);
                         if (positions_copy[secondary].x >= positions_copy[primary].x) {
-                            accelerations[primary].x += G * masses[secondary] / norm2;// / 10e3; //We can get rid of these 10e3 I hope but they seem to help a lot
+                            accelerations[primary].x += G * masses[secondary] / (norm2/KM_PER_SOLARRADIUS);// / 10e3; //We can get rid of these 10e3 I hope but they seem to help a lot
                         } else {
-                            accelerations[primary].x -= G * masses[secondary] / norm2;// / 10e3;
+                            accelerations[primary].x -= G * masses[secondary] / (norm2/KM_PER_SOLARRADIUS);// / 10e3;
                         }
                         if (positions_copy[secondary].y >= positions_copy[primary].y) {
-                            accelerations[primary].y += G * masses[secondary] / norm2;// / 10e3;
+                            accelerations[primary].y += G * masses[secondary] / (norm2/KM_PER_SOLARRADIUS);// / 10e3;
                         } else {
-                            accelerations[primary].y -= G * masses[secondary] / norm2;// / 10e3;
+                            accelerations[primary].y -= G * masses[secondary] / (norm2/KM_PER_SOLARRADIUS);// / 10e3;
                         }
                     }
                 }
                 //Handle singularities 
                 if (accelerations[primary].x > singularity_threshold) {
-                    accelerations[primary].x = singularity_threshold;
+                    //accelerations[primary].x = singularity_threshold;
                 }
                 if (accelerations[primary].x < (-1 * singularity_threshold)) {
-                    accelerations[primary].x = -1*singularity_threshold;
+                    //accelerations[primary].x = -1*singularity_threshold;
                 }
                 if (accelerations[primary].y > singularity_threshold) {
-                    accelerations[primary].y = singularity_threshold;
+                    //accelerations[primary].y = singularity_threshold;
                 }
                 if (accelerations[primary].y < (-1 * singularity_threshold)) {
-                    accelerations[primary].y = -1*singularity_threshold;
+                    //accelerations[primary].y = -1*singularity_threshold;
                 }
                 //Update velocities
                 velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
