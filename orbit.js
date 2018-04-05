@@ -64,7 +64,9 @@ var input_x_vel;
 var input_initial_x_vel = [];
 var input_y_vel;
 var input_initial_y_vel = [];
+//Set star and preset buttons
 var set_stars;
+var preset_binary;
 
 //variables for planet input interface in the menu
 var planet_input_mass;
@@ -649,6 +651,12 @@ function generateSetPlanets() {
     show_menu = 0;
     paused = 0;
     textSize(15);
+}
+
+/*
+*/
+function generateBinaryOrbit() {
+
 }
 
 
