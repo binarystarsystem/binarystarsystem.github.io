@@ -26,10 +26,10 @@ var accelerations = [];
 var stars = [];
 var sliders = [];
 var N = 3;
-var colours = ['red', 'orange', 'yellow', 'white', 'gold', 'DarkOrange']
+var colours = ['red', 'orange', 'yellow', 'white', 'gold', 'DarkOrange'];
 
 //hold the planets
-var M = 3;
+var M = 5;
 var planet_masses = [];
 var planet_positions = [];
 var planet_velocities = [];
@@ -40,8 +40,8 @@ var planet;
 var parent_star;
 
 var t = 0;
-var dt = 8e3;
-var initial_dt = 8e3;
+var dt = 24e3;
+var initial_dt = 24e3;
 var console_flag = 0;
 var pause_button;
 var start_button;
@@ -138,8 +138,8 @@ function draw() {
                         accelerations[primary].y += G * masses[secondary] *(positions_copy[secondary].y - positions_copy[primary].y)*scale_distance / (norm3*KM_PER_SOLARRADIUS);
                     }
                 }
-                console.log('x ' + accelerations[primary].x);
-                console.log('y ' + accelerations[primary].y);
+                //console.log('x ' + accelerations[primary].x);
+                //console.log('y ' + accelerations[primary].y);
                 //Handle singularities 
                 //Rails accelerations at a threshold value. This could be edited if needed
                 //We may want to handle singularities in the looping portion to isolate contributions from each star
@@ -155,8 +155,8 @@ function draw() {
                 if (accelerations[primary].y < (-1 * singularity_threshold)) {
                     accelerations[primary].y = -1*singularity_threshold;
                 }
-                console.log('x_railed ' + accelerations[primary].x);
-                console.log('y_railed ' + accelerations[primary].y);
+               // console.log('x_railed ' + accelerations[primary].x);
+               // console.log('y_railed ' + accelerations[primary].y);
                 //Update velocities
                 velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
                 velocities[primary].y = velocities_copy[primary].y + accelerations[primary].y * dt;
@@ -519,12 +519,7 @@ function createStarInputInterface() {
 //planets naturally spawn around stars with some inital velocity. It may be nice to modify this initial velocity so that the 
 //planets orbit right away
 function generateRandomPlanets() {
-    planet_masses = [];
-    planet_positions = [];
-    planet_velocities = [];
-    planet_accelerations = [];
-    planets = [];
-
+    zeroPlanetArrays();
     for (var index = 0; index < M; index++) {
         planet_masses.push(planet_mass/scale_mass_slider);
     }
