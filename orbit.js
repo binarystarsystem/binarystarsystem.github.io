@@ -40,7 +40,7 @@ var planet;
 var parent_star;
 
 var t = 0;
-var dt = 6000;
+var dt = 60e4;
 var console_flag = 0;
 var pause_button;
 var start_button;
@@ -67,6 +67,7 @@ var input_initial_y_vel = [];
 //Set star and preset buttons
 var set_stars;
 var preset_binary;
+var binary_flag = 0;
 
 //variables for planet input interface in the menu
 var planet_input_mass;
@@ -154,6 +155,13 @@ function draw() {
                 velocities[primary].x = velocities_copy[primary].x + accelerations[primary].x * dt;
                 velocities[primary].y = velocities_copy[primary].y + accelerations[primary].y * dt;
             }
+            //if (console_flag % 10 == 0) {
+                //console.log('vX ' + velocities[0].x);
+                //console.log('vY ' + velocities[0].y);
+                //console.log('aX ' + accelerations[0].x);
+                //console.log('aY ' + accelerations[0].y);
+            //}
+            //console_flag += 1;
             //See planet physics function, similar to above physics
            doPlanetPhysics();
         }
@@ -276,19 +284,25 @@ Sets them equally spaced around a circle at equal radius from center.
 Should regenerate random stars around them
 */
 function reset() {
-    for (var index2 = 0; index2 < N; index2++) {
-        positions[index2] = createVector(cos(2 * PI * index2 / N) * 0.6 * AU, sin(2 * PI * index2 / N) * 0.6 * AU, 0);
-        velocities[index2] = createVector(cos(2 * PI * index2 / N) * 2, sin(2 * PI * index2 / N) * -2, 0);
-        accelerations[index2] = createVector(0, 0, 0);
-        stars[index2].path = [];
+    if (binary_flag == 0) {
+        for (var index2 = 0; index2 < N; index2++) {
+            positions[index2] = createVector(cos(2 * PI * index2 / N) * 0.6 * AU, sin(2 * PI * index2 / N) * 0.6 * AU, 0);
+            velocities[index2] = createVector(cos(2 * PI * index2 / N) * 2, sin(2 * PI * index2 / N) * -2, 0);
+            accelerations[index2] = createVector(0, 0, 0);
+            stars[index2].path = [];
+        }
+        zeroPlanetArrays();
+        generateRandomPlanets();
     }
-    zeroPlanetArrays();
-    generateRandomPlanets();
+    else {
+        generateBinaryOrbit();
+    }
 }
 
 //generates N random stars
 //randomize mass and position, in a circle about the origin
 function generateRandomStars() {
+    binary_flag = 0;
     for (var index = 0; index < sliders.length; index++) {
         sliders[index].remove();
     }
@@ -401,6 +415,9 @@ function deleteMenu() {
     if (set_stars != null) {
         set_stars.remove();
     }
+    if (preset_binary != null) {
+        preset_binary.remove();
+    }
     deleteInputInterface();   
 }
 
@@ -485,6 +502,9 @@ function createStarInputInterface() {
     set_stars = createButton('Generate Star System');
     set_stars.position(20, 630);
     set_stars.mouseClicked(generateSetStars);
+    preset_binary = createButton('Binary Orbit');
+    preset_binary.position(110, 630);
+    preset_binary.mouseClicked(generateBinaryOrbit);
 }
 
 
@@ -600,6 +620,7 @@ function doPlanetPhysics() {
 Generates stars based on user input in menu
 */
 function generateSetStars() {
+    binary_flag = 0;
     for (var index = 0; index < sliders.length; index++) {
         sliders[index].remove();
     }
@@ -654,9 +675,43 @@ function generateSetPlanets() {
 }
 
 /*
+Generates a preset binary orbit
 */
 function generateBinaryOrbit() {
+    binary_flag = 1;
+    N = 2;
+    zeroPlanetArrays();
+    zeroStarArrays();
+    for (var index = 0; index < sliders.length; index++) {
+        sliders[index].remove();
+    }
+    M = 0;
+    if (show_menu == 1) {
+        deleteMenu();
+        generateButtons();
+    }
+    show_menu = 0;
+    paused = 0;
+    textSize(15);
+    masses.push(4);
+    masses.push(4);
+    positions.push(createVector(-200,0,0));
+    positions.push(createVector(200, 0, 0));
+    velocities.push(createVector(0, -21, 0));
+    velocities.push(createVector(0, 21, 0));
+    accelerations.push(createVector(0, 0, 0));
+    accelerations.push(createVector(0, 0, 0));
+    star = new Star(masses[0], colours[Math.floor(Math.random() * colours.length)]);
+    stars.push(star);
+    star = new Star(masses[1], colours[Math.floor(Math.random() * colours.length)]);
+    stars.push(star);
 
+    //Generates the adjustable sliders for inside the physics simulator
+    for (var index = 0; index < N; index++) {
+        slider = createSlider(0, 100, masses[index] * 25);
+        sliders.push(slider);
+        sliders[index].position(20, 20 + 30 * index);
+    }
 }
 
 
