@@ -570,6 +570,7 @@ function doPlanetPhysics() {
 
     //physics of stars on planets
     for (var primary = 0; primary < planet_masses.length; primary++) {
+        console.log(planet_masses[primary]);
         planet_positions[primary].x = planet_positions_copy[primary].x + planet_velocities_copy[primary].x * dt;
         planet_positions[primary].y = planet_positions_copy[primary].y + planet_velocities_copy[primary].y * dt;
         planet_accelerations[primary].x = 0;
@@ -590,7 +591,7 @@ function doPlanetPhysics() {
         //planet_singularity_threshold
         //remove singularities
         //singularity threshold to be modified
-        console.log(planet_accelerations[primary].x);
+        //console.log(planet_accelerations[primary].x);
         if (planet_accelerations[primary].x > planet_singularity_threshold) {
             planet_accelerations[primary].x = planet_singularity_threshold;
         }
@@ -603,7 +604,7 @@ function doPlanetPhysics() {
         if (planet_accelerations[primary].y < (-1 * planet_singularity_threshold)) {
             planet_accelerations[primary].y = -1 * planet_singularity_threshold;
         }
-        console.log('railed ' + planet_accelerations[primary].x);
+        //console.log('railed ' + planet_accelerations[primary].x);
         //update velocity of planets
         planet_velocities[primary].x = planet_velocities_copy[primary].x + planet_accelerations[primary].x * dt;
         planet_velocities[primary].y = planet_velocities_copy[primary].y + planet_accelerations[primary].y * dt;
@@ -677,7 +678,6 @@ function generateSetStars() {
         sliders.push(slider);
         sliders[index].position(20, 20 + 30 * index);
     }   
-    //M = 0;
     generateSetPlanets();
 }
 /*
